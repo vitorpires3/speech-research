@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+dbeec025-Audio_SP13.csv,dbeec025-Audio_SP13,data/raw/sound/dbeec025-Audio_SP13.v0.wav,2736.624,1368.312,time column: time,audio_duration,2814,1496,1318,34.77775,2722.90875

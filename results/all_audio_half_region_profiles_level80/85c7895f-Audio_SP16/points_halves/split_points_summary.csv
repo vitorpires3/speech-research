@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+85c7895f-Audio_SP16.csv,85c7895f-Audio_SP16,data/raw/sound/85c7895f-Audio_SP16.v0.wav,3789.096,1894.548,time column: time,audio_duration,5987,3168,2819,8.712749999999998,3775.78875

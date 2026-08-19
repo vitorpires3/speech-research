@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+a1a056ce-Audio_SP11.csv,a1a056ce-Audio_SP11,data/raw/sound/a1a056ce-Audio_SP11.v0.wav,1703.9409791666667,851.9704895833333,time column: time,audio_duration,1705,858,847,10.612749999999998,1677.22375

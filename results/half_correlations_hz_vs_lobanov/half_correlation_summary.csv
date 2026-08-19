@@ -1,0 +1,3 @@
+block,n_features,median_pearson_hz,median_pearson_lobanov,median_spearman_hz,median_spearman_lobanov,pearson_features_lobanov_higher,spearman_features_lobanov_higher
+Centroids,10,0.9581681833398901,0.8426627331097118,0.9523557837511325,0.7368619752340683,0,0
+Geometry,10,0.9273608948043017,0.7992933301694373,0.9139987919057686,0.7845061914829357,1,2

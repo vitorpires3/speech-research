@@ -1,0 +1,15 @@
+{
+  "overlap_csv": "/home/pires/projects/speech-research/results/kde_3d_by_vowel_speaker/kde_pairwise_overlap.csv",
+  "metadata_csv": "/home/pires/projects/speech-research/data/raw/social_metadata.csv",
+  "id_column": "Time.code.and.speaker",
+  "social_columns": {
+    "gender": "Sex",
+    "nationality": "CountryRes",
+    "income": "Income_group"
+  },
+  "income_order_method": "numeric",
+  "permutations": 10000,
+  "seed": 20260721,
+  "matched_ids": 43,
+  "total_ids": 43
+}

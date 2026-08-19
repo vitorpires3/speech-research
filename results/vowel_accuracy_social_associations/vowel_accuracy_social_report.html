@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vowel accuracy and social characteristics</title>
+<style>
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 2rem;
+    line-height: 1.45;
+    color: #222;
+    max-width: 1450px;
+}
+
+h1 {
+    margin-bottom: .25rem;
+}
+
+h2 {
+    margin-top: 2.5rem;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: .3rem;
+}
+
+.note {
+    background: #f5f5f5;
+    border-left: 4px solid #777;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.good {
+    background: #eef8ee;
+    border-left: 4px solid #4c8;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.warning {
+    background: #fff4e5;
+    border-left: 4px solid #d98c00;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.table-wrap {
+    overflow-x: auto;
+    border: 1px solid #ddd;
+    margin: 1rem 0 2rem;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .84rem;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: .42rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+th {
+    background: #eee;
+}
+
+td:first-child,
+th:first-child {
+    text-align: left;
+}
+
+img {
+    max-width: 100%;
+    border: 1px solid #ddd;
+    margin: 1rem 0 2rem;
+}
+
+code {
+    background: #f2f2f2;
+    padding: .1rem .25rem;
+}
+</style>
+</head>
+
+<body>
+
+<h1>
+Speaker-level vowel-classification performance
+and social characteristics
+</h1>
+
+<div class="note">
+<b>Dependent variable:</b>
+out-of-fold speaker-level <b>balanced accuracy</b>
+from the speaker-independent vowel classifier.
+Each speaker contributes one performance value,
+calculated when that speaker was outside the training set.
+</div>
+
+<h2>Automatic summary</h2>
+
+<div class="good">
+<ul>
+<li><b>Welch t-test — Sex:</b> no FDR-significant evidence of a difference between the two group means (effect=-0.0211, p=0.3503, q=0.8997).</li><li><b>Welch ANOVA — CountryRes:</b> no FDR-significant evidence that the group means differ (effect=0.0532, p=0.8997, q=0.8997).</li><li><b>Welch ANOVA — Education:</b> no FDR-significant evidence that the group means differ (effect=0.0338, p=0.6110, q=0.8997).</li><li><b>Pearson correlation — Income_raw:</b> no FDR-significant negative association (effect=-0.0655, p=0.6766, q=0.8997).</li><li><b>Spearman correlation — Income_raw:</b> no FDR-significant negative association (effect=-0.0275, p=0.8611, q=0.8997).</li>
+</ul>
+</div>
+
+<p>
+Benjamini–Hochberg false-discovery-rate correction
+was applied jointly to the five primary tests.
+The results concern classifier generalization,
+not pronunciation quality and not causation.
+</p>
+
+<h2>Data and matching audit</h2>
+
+<ul>
+<li>
+Speaker-level classifier file:
+<code>/home/pires/projects/speech-research/results/vowel_classification_raw_formants_only/per_speaker_results.csv</code>
+</li>
+
+<li>
+Social metadata:
+<code>/home/pires/projects/speech-research/data/raw/social_metadata.csv</code>
+</li>
+
+<li>
+Classifier observations:
+<b>43</b>
+</li>
+
+<li>
+Matched metadata observations:
+<b>43</b>
+(100.0%)
+</li>
+
+<li>
+Sex available:
+<b>43</b>
+</li>
+
+<li>
+Country available:
+<b>43</b>
+</li>
+
+<li>
+Education available:
+<b>43</b>
+</li>
+
+<li>
+Raw income available:
+<b>43</b>
+</li>
+</ul>
+
+<h2>Primary inferential tests</h2>
+
+<p>
+The Welch t-test compares mean balanced accuracy
+between the two sex groups.
+Welch ANOVA tests whether at least one mean differs
+across country-of-residence or education groups.
+Pearson measures linear association with raw income,
+whereas Spearman measures monotonic rank association.
+</p>
+
+<div class="table-wrap"><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>test</th>
+      <th>variable</th>
+      <th>n</th>
+      <th>groups</th>
+      <th>statistic</th>
+      <th>df1</th>
+      <th>df2</th>
+      <th>effect_name</th>
+      <th>effect</th>
+      <th>ci_low</th>
+      <th>ci_high</th>
+      <th>p_value</th>
+      <th>status</th>
+      <th>q_value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Welch t-test</td>
+      <td>Sex</td>
+      <td>43</td>
+      <td>2.0000</td>
+      <td>-0.9650</td>
+      <td>14.5684</td>
+      <td></td>
+      <td>mean(F) - mean(M)</td>
+      <td>-0.0211</td>
+      <td>-0.0678</td>
+      <td>0.0256</td>
+      <td>0.3503</td>
+      <td>OK</td>
+      <td>0.8997</td>
+    </tr>
+    <tr>
+      <td>Welch ANOVA</td>
+      <td>CountryRes</td>
+      <td>41</td>
+      <td>6.0000</td>
+      <td>0.2969</td>
+      <td>5.0000</td>
+      <td>6.8352</td>
+      <td>range of group means</td>
+      <td>0.0532</td>
+      <td></td>
+      <td></td>
+      <td>0.8997</td>
+      <td>OK</td>
+      <td>0.8997</td>
+    </tr>
+    <tr>
+      <td>Welch ANOVA</td>
+      <td>Education</td>
+      <td>43</td>
+      <td>4.0000</td>
+      <td>0.6343</td>
+      <td>3.0000</td>
+      <td>9.1938</td>
+      <td>range of group means</td>
+      <td>0.0338</td>
+      <td></td>
+      <td></td>
+      <td>0.6110</td>
+      <td>OK</td>
+      <td>0.8997</td>
+    </tr>
+    <tr>
+      <td>Pearson correlation</td>
+      <td>Income_raw</td>
+      <td>43</td>
+      <td></td>
+      <td>-0.0655</td>
+      <td></td>
+      <td></td>
+      <td>r</td>
+      <td>-0.0655</td>
+      <td></td>
+      <td></td>
+      <td>0.6766</td>
+      <td>OK</td>
+      <td>0.8997</td>
+    </tr>
+    <tr>
+      <td>Spearman correlation</td>
+      <td>Income_raw</td>
+      <td>43</td>
+      <td></td>
+      <td>-0.0275</td>
+      <td></td>
+      <td></td>
+      <td>rho</td>
+      <td>-0.0275</td>
+      <td></td>
+      <td></td>
+      <td>0.8611</td>
+      <td>OK</td>
+      <td>0.8997</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>Descriptive group summaries</h2>
+
+<div class="table-wrap"><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>variable</th>
+      <th>Sex</th>
+      <th>n</th>
+      <th>mean</th>
+      <th>sd</th>
+      <th>median</th>
+      <th>minimum</th>
+      <th>maximum</th>
+      <th>CountryRes</th>
+      <th>Education</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Sex</td>
+      <td>F</td>
+      <td>10</td>
+      <td>0.6671</td>
+      <td>0.0609</td>
+      <td>0.6704</td>
+      <td>0.5565</td>
+      <td>0.7881</td>
+      <td>&lt;NA&gt;</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <td>Sex</td>
+      <td>M</td>
+      <td>33</td>
+      <td>0.6882</td>
+      <td>0.0593</td>
+      <td>0.6958</td>
+      <td>0.5526</td>
+      <td>0.7799</td>
+      <td>&lt;NA&gt;</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <td>CountryRes</td>
+      <td>&lt;NA&gt;</td>
+      <td>5</td>
+      <td>0.6888</td>
+      <td>0.0738</td>
+      <td>0.6948</td>
+      <td>0.5827</td>
+      <td>0.7799</td>
+      <td>AR</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <td>CountryRes</td>
+      <td>&lt;NA&gt;</td>
+      <td>8</td>
+      <td>0.6873</td>
+      <td>0.0744</td>
+      <td>0.7162</td>
+      <td>0.5526</td>
+      <td>0.7523</td>
+      <td>CO</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <td>CountryRes</td>
+      <td>&lt;NA&gt;</td>
+      <td>2</td>
+      <td>0.7220</td>
+      <td>0.0935</td>
+      <td>0.7220</td>
+      <td>0.6560</td>
+      <td>0.7881</td>
+      <td>DO</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <td>CountryRes</td>
+      <td>&lt;NA&gt;</td>
+      <td>4</td>
+      <td>0.6812</td>
+      <td>0.0477</td>
+      <td>0.6623</td>
+      <td>0.6480</td>
+      <td>0.7520</td>
+      <td>EC</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <td>CountryRes</td>
+      <td>&lt;NA&gt;</td>
+      <td>5</td>
+      <td>0.6979</td>
+      <td>0.0428</td>
+      <td>0.7071</td>
+      <td>0.6495</td>
+      <td>0.7540</td>
+      <td>PE</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <td>CountryRes</td>
+      <td>&lt;NA&gt;</td>
+      <td>1</td>
+      <td>0.6534</td>
+      <td></td>
+      <td>0.6534</td>
+      <td>0.6534</td>
+      <td>0.6534</td>
+      <td>PY</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <td>CountryRes</td>
+      <td>&lt;NA&gt;</td>
+      <td>1</td>
+      <td>0.7580</td>
+      <td></td>
+      <td>0.7580</td>
+      <td>0.7580</td>
+      <td>0.7580</td>
+      <td>SV</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <td>CountryRes</td>
+      <td>&lt;NA&gt;</td>
+      <td>17</td>
+      <td>0.6688</td>
+      <td>0.0566</td>
+      <td>0.6791</td>
+      <td>0.5565</td>
+      <td>0.7363</td>
+      <td>VE</td>
+      <td>&lt;NA&gt;</td>
+    </tr>
+    <tr>
+      <td>Education</td>
+      <td>&lt;NA&gt;</td>
+      <td>25</td>
+      <td>0.6944</td>
+      <td>0.0569</td>
+      <td>0.6958</td>
+      <td>0.5565</td>
+      <td>0.7881</td>
+      <td>&lt;NA&gt;</td>
+      <td>Bachelor</td>
+    </tr>
+    <tr>
+      <td>Education</td>
+      <td>&lt;NA&gt;</td>
+      <td>4</td>
+      <td>0.6669</td>
+      <td>0.0664</td>
+      <td>0.6552</td>
+      <td>0.5994</td>
+      <td>0.7580</td>
+      <td>&lt;NA&gt;</td>
+      <td>Master</td>
+    </tr>
+    <tr>
+      <td>Education</td>
+      <td>&lt;NA&gt;</td>
+      <td>8</td>
+      <td>0.6736</td>
+      <td>0.0676</td>
+      <td>0.6934</td>
+      <td>0.5526</td>
+      <td>0.7363</td>
+      <td>&lt;NA&gt;</td>
+      <td>Secondary/Vocational</td>
+    </tr>
+    <tr>
+      <td>Education</td>
+      <td>&lt;NA&gt;</td>
+      <td>6</td>
+      <td>0.6607</td>
+      <td>0.0606</td>
+      <td>0.6745</td>
+      <td>0.5827</td>
+      <td>0.7423</td>
+      <td>&lt;NA&gt;</td>
+      <td>Short HE</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>Sex</h2>
+
+<img
+src="assets/accuracy_by_sex.png"
+alt="Balanced accuracy by sex"
+>
+
+<h2>Country of residence</h2>
+
+<img
+src="assets/accuracy_by_country.png"
+alt="Balanced accuracy by country of residence"
+>
+
+<h2>Education</h2>
+
+<img
+src="assets/accuracy_by_education.png"
+alt="Balanced accuracy by education"
+>
+
+<h2>Raw income</h2>
+
+<img
+src="assets/accuracy_by_income.png"
+alt="Raw income and balanced accuracy"
+>
+
+<h2>Interpretation cautions</h2>
+
+<ul>
+
+<li>
+Welch tests assess differences in
+<b>mean</b> balanced accuracy.
+A non-significant result does not prove that the
+complete distributions are identical.
+</li>
+
+<li>
+Country uses the metadata field
+<code>CountryRes</code>,
+interpreted here as country of residence,
+not nationality.
+</li>
+
+<li>
+Pearson measures linear association,
+whereas Spearman measures monotonic rank association.
+</li>
+
+<li>
+Groups with fewer than two observations are retained
+in descriptive summaries but excluded from Welch ANOVA.
+</li>
+
+<li>
+Small or highly unbalanced social groups produce
+limited statistical power and wide uncertainty.
+</li>
+
+<li>
+This analysis inherits the classifier's definition of
+a speaker. Confirm that the classifier identifier
+corresponds to a real individual rather than merely
+to an audio file.
+</li>
+
+<li>
+An association may reflect accent, representation in
+the training data, recording quality, formant-extraction
+quality or confounding among social variables.
+</li>
+
+</ul>
+
+<h2>Saved outputs</h2>
+
+<ul>
+<li><code>vowel_accuracy_social_report.html</code></li>
+<li><code>speaker_accuracy_social_merged.csv</code></li>
+<li><code>primary_tests.csv</code></li>
+<li><code>group_summaries.csv</code></li>
+<li><code>match_audit.csv</code></li>
+<li><code>unmatched_speakers.csv</code></li>
+<li><code>duplicated_metadata_rows.csv</code></li>
+</ul>
+
+</body>
+</html>

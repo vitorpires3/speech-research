@@ -1,0 +1,19 @@
+{
+  "input_dir": "data/processed/new_fave_points",
+  "output_dir": "results/vowel_classification_raw_formants_only",
+  "label_column": "label",
+  "vowels": [
+    "a",
+    "e",
+    "i",
+    "o",
+    "u"
+  ],
+  "folds": 5,
+  "split_search": 100,
+  "seed": 20260727,
+  "min_speakers": 10,
+  "rf_trees": 200,
+  "bootstrap": 2000,
+  "skip_random_forest": false
+}

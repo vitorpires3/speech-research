@@ -1,0 +1,34 @@
+{
+  "best_config_id": "Logistic regression__F1_F2_F3",
+  "model": "Logistic regression",
+  "model_family": "logistic",
+  "feature_set": "F1_F2_F3",
+  "features": [
+    "F1",
+    "F2",
+    "F3"
+  ],
+  "classes": [
+    "a",
+    "e",
+    "i",
+    "o",
+    "u"
+  ],
+  "speaker_definition": "CSV filename stem",
+  "row_definition": "one new-fave point row treated as one vowel token",
+  "input_directory": "/home/pires/projects/speech-research/data/processed/new_fave_points",
+  "n_tokens": 138593,
+  "n_speakers": 43,
+  "folds": 5,
+  "split_metadata": {
+    "selected_split_seed": 20260727,
+    "searched_candidates": 100,
+    "expected_test_fraction_per_fold": 0.2,
+    "objective": 0.03823061463606577,
+    "max_vowel_fraction_deviation": 0.03206562266964949,
+    "mean_vowel_fraction_deviation": 0.008143937421204657,
+    "max_speaker_fraction_deviation": 0.013953488372093037
+  },
+  "seed": 20260727
+}

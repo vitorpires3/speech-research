@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+adad0062-Audio_SP17.csv,adad0062-Audio_SP17,data/raw/sound/adad0062-Audio_SP17.v0.wav,3202.368,1601.184,time column: time,audio_duration,3893,2140,1753,30.88275,3185.0327500000003

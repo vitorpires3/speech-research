@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+7aee4437-Audio_SP12.csv,7aee4437-Audio_SP12,data/raw/sound/7aee4437-Audio_SP12.v0.wav,2773.800979166667,1386.9004895833334,time column: time,audio_duration,1711,736,975,91.52075,2731.2627500000003

@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+42d56bbf-Audio_SP23.csv,42d56bbf-Audio_SP23,data/raw/sound/42d56bbf-Audio_SP23.v0.wav,6174.432,3087.216,time column: time,audio_duration,10244,5295,4949,16.49275,6077.62575

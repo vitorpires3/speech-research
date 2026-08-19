@@ -1,0 +1,2 @@
+n_speakers_used,n_features,n_clusters,silhouette_score,PC1_explained_percent,PC2_explained_percent,PC1_PC2_total_percent
+43,10,8,0.2059808117893651,50.35124090274562,18.503047262514464,68.85428816526009

@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+375a28cd-Audio_SP16.csv,375a28cd-Audio_SP16,data/raw/sound/375a28cd-Audio_SP16.v0.wav,3207.648,1603.824,time column: time,audio_duration,3560,1834,1726,1.48375,3193.98775

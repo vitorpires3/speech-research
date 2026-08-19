@@ -1,0 +1,1 @@
+Bandwidth handling: B1 -> B1_Hz using exp(B1); B2 -> B2_Hz using exp(B2); B3 -> B3_Hz using exp(B3)

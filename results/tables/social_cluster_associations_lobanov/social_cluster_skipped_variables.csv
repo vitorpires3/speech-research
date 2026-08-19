@@ -1,0 +1,6 @@
+column,non_missing,n_categories,reason
+InfoInterv,43,1,excluded_or_invalid_or_too_many_categories
+Time.code.and.speaker.2,43,43,excluded_or_invalid_or_too_many_categories
+Speaker,43,43,excluded_or_invalid_or_too_many_categories
+Location,43,32,excluded_or_invalid_or_too_many_categories
+Amount_mw_earnings,43,43,excluded_or_invalid_or_too_many_categories

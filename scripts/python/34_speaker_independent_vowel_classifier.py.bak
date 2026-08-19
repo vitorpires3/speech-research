@@ -1,0 +1,1313 @@
+#!/usr/bin/env python3
+"""
+Speaker-independent five-class vowel classification from new-fave point CSVs.
+
+Design
+------
+* One CSV file stem is treated as one speaker/audio class.
+* One CSV row is treated as one vowel token.
+* Five outer folds: about 80% of speakers for training and 20% for test.
+* No speaker is ever present in both training and test in the same fold.
+* Fold assignment is searched to keep about 20% of EACH vowel in each test fold.
+* Main metric: speaker-macro balanced accuracy (mean of five-vowel recall per speaker).
+* Raw acoustic values are used. Bandwidth columns B1/B2/B3 are converted from
+  natural-log scale to Hz when their values look logarithmic.
+
+Outputs include an HTML report, CSV tables, plots, out-of-fold predictions for
+best configuration, and a final fitted model trained on all available speakers.
+"""
+
+from __future__ import annotations
+
+import argparse
+import html
+import json
+import math
+import re
+import sys
+import traceback
+import warnings
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Iterable
+
+import joblib
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from sklearn.base import BaseEstimator
+from sklearn.compose import TransformedTargetRegressor
+from sklearn.dummy import DummyClassifier
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_recall_fscore_support,
+    recall_score,
+)
+from sklearn.model_selection import StratifiedGroupKFold
+from sklearn.neighbors import NearestCentroid
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+
+# -----------------------------------------------------------------------------
+# Configuration and helpers
+# -----------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class ModelConfig:
+    name: str
+    feature_set: str
+    family: str
+
+    @property
+    def config_id(self) -> str:
+        return f"{self.name}__{self.feature_set}"
+
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(
+        description="Speaker-independent five-class vowel classification with an HTML report."
+    )
+    p.add_argument(
+        "--input-dir",
+        type=Path,
+        default=Path("data/processed/new_fave_points"),
+        help="Directory containing one point CSV per speaker/audio.",
+    )
+    p.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("results/vowel_classification_raw"),
+        help="Output directory.",
+    )
+    p.add_argument("--label-column", default="label")
+    p.add_argument("--vowels", nargs="+", default=["a", "e", "i", "o", "u"])
+    p.add_argument("--folds", type=int, default=5)
+    p.add_argument(
+        "--split-search",
+        type=int,
+        default=100,
+        help="Number of random grouped stratifications examined to improve vowel balance.",
+    )
+    p.add_argument("--seed", type=int, default=20260727)
+    p.add_argument(
+        "--min-speakers",
+        type=int,
+        default=10,
+        help="Abort if fewer matched speaker files remain after filtering.",
+    )
+    p.add_argument(
+        "--rf-trees",
+        type=int,
+        default=200,
+        help="Number of trees in each Random Forest fit.",
+    )
+    p.add_argument(
+        "--bootstrap",
+        type=int,
+        default=2000,
+        help="Speaker bootstrap repetitions for confidence intervals.",
+    )
+    p.add_argument(
+        "--skip-random-forest",
+        action="store_true",
+        help="Skip Random Forest for a faster diagnostic run.",
+    )
+    return p.parse_args()
+
+
+def normalize_vowel(x: Any) -> str:
+    s = str(x).strip().lower()
+    s = s.replace("/", "")
+    # Common accented/IPA-like variants can be extended here if needed.
+    aliases = {
+        "á": "a", "à": "a", "ä": "a",
+        "é": "e", "è": "e", "ë": "e",
+        "í": "i", "ì": "i", "ï": "i",
+        "ó": "o", "ò": "o", "ö": "o",
+        "ú": "u", "ù": "u", "ü": "u",
+    }
+    return aliases.get(s, s)
+
+
+def read_csv_flexible(path: Path) -> pd.DataFrame:
+    errors: list[str] = []
+    for enc in ("utf-8", "utf-8-sig", "latin-1"):
+        try:
+            return pd.read_csv(path, encoding=enc, low_memory=False)
+        except Exception as exc:  # noqa: BLE001
+            errors.append(f"{enc}: {exc}")
+    raise RuntimeError(f"Could not read {path}: {' | '.join(errors)}")
+
+
+def finite_numeric(series: pd.Series) -> pd.Series:
+    x = pd.to_numeric(series, errors="coerce")
+    return x.where(np.isfinite(x), np.nan)
+
+
+def fixed_balanced_accuracy(y_true: Iterable[str], y_pred: Iterable[str], classes: list[str]) -> float:
+    return float(
+        recall_score(
+            list(y_true),
+            list(y_pred),
+            labels=classes,
+            average="macro",
+            zero_division=0,
+        )
+    )
+
+
+def safe_float(x: Any) -> float:
+    try:
+        v = float(x)
+        return v if np.isfinite(v) else float("nan")
+    except Exception:  # noqa: BLE001
+        return float("nan")
+
+
+def bh_fdr(p_values: Iterable[float]) -> np.ndarray:
+    p = np.asarray(list(p_values), dtype=float)
+    q = np.full_like(p, np.nan)
+    valid = np.isfinite(p)
+    if not valid.any():
+        return q
+    pv = p[valid]
+    order = np.argsort(pv)
+    ranked = pv[order]
+    m = len(ranked)
+    adjusted = ranked * m / np.arange(1, m + 1)
+    adjusted = np.minimum.accumulate(adjusted[::-1])[::-1]
+    adjusted = np.clip(adjusted, 0, 1)
+    original = np.empty(m)
+    original[order] = adjusted
+    q[valid] = original
+    return q
+
+
+# -----------------------------------------------------------------------------
+# Data loading and feature detection
+# -----------------------------------------------------------------------------
+
+def load_point_data(
+    input_dir: Path,
+    label_column: str,
+    vowels: list[str],
+) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
+    files = sorted(input_dir.glob("*.csv"))
+    if not files:
+        raise FileNotFoundError(f"No CSV files found in {input_dir}")
+
+    frames: list[pd.DataFrame] = []
+    inventory: list[dict[str, Any]] = []
+    warnings_list: list[str] = []
+
+    for path in files:
+        try:
+            d = read_csv_flexible(path)
+            if label_column not in d.columns:
+                inventory.append({
+                    "file": path.name,
+                    "speaker": path.stem,
+                    "status": "skipped",
+                    "reason": f"missing label column {label_column!r}",
+                    "raw_rows": len(d),
+                    "retained_rows": 0,
+                })
+                continue
+
+            d = d.copy()
+            d["__speaker__"] = path.stem
+            d["__source_file__"] = path.name
+            d["__row_in_file__"] = np.arange(len(d), dtype=np.int64)
+            d["__vowel__"] = d[label_column].map(normalize_vowel)
+            before = len(d)
+            d = d[d["__vowel__"].isin(vowels)].copy()
+
+            inventory.append({
+                "file": path.name,
+                "speaker": path.stem,
+                "status": "loaded",
+                "reason": "",
+                "raw_rows": before,
+                "retained_rows": len(d),
+            })
+            if not d.empty:
+                frames.append(d)
+        except Exception as exc:  # noqa: BLE001
+            inventory.append({
+                "file": path.name,
+                "speaker": path.stem,
+                "status": "error",
+                "reason": str(exc),
+                "raw_rows": np.nan,
+                "retained_rows": 0,
+            })
+
+    if not frames:
+        raise RuntimeError("No usable rows were loaded.")
+
+    data = pd.concat(frames, ignore_index=True, sort=False)
+    inventory_df = pd.DataFrame(inventory)
+
+    missing_vowels = [v for v in vowels if v not in set(data["__vowel__"])]
+    if missing_vowels:
+        warnings_list.append(f"No tokens found for vowel(s): {missing_vowels}")
+
+    # Coerce core formants to numeric and apply only minimal physical validity filters.
+    for col in ("F1", "F2", "F3"):
+        if col in data.columns:
+            data[col] = finite_numeric(data[col])
+
+    required = [c for c in ("F1", "F2") if c in data.columns]
+    if len(required) < 2:
+        raise ValueError("The input must contain numeric F1 and F2 columns.")
+
+    valid_core = data["F1"].gt(0) & data["F2"].gt(0)
+    removed = int((~valid_core).sum())
+    if removed:
+        warnings_list.append(
+            f"Removed {removed:,} rows with missing, non-finite, or non-positive F1/F2."
+        )
+    data = data.loc[valid_core].reset_index(drop=True)
+
+    # Convert bandwidth columns when they look like natural logarithms.
+    conversion_notes: list[str] = []
+    for col in ("B1", "B2", "B3"):
+        if col not in data.columns:
+            continue
+        x = finite_numeric(data[col])
+        data[col] = x
+        valid = x.dropna()
+        if valid.empty:
+            continue
+        median = float(valid.median())
+        p99 = float(valid.quantile(0.99))
+        hz_col = f"{col}_Hz"
+        if median < 20 and p99 < 25:
+            # new-fave/FastTrack point bandwidths in this project are natural logs.
+            data[hz_col] = np.exp(x.clip(lower=-20, upper=20))
+            conversion_notes.append(f"{col} -> {hz_col} using exp({col})")
+        else:
+            data[hz_col] = x
+            conversion_notes.append(f"{col} copied to {hz_col}; values already looked linear")
+
+    if conversion_notes:
+        warnings_list.append("Bandwidth handling: " + "; ".join(conversion_notes))
+
+    return data, inventory_df, warnings_list
+
+
+UNSAFE_PATTERNS = re.compile(
+    r"(^|_)(label|vowel|phone|phoneme|speaker|talker|file|filename|audio|path|"
+    r"token|utterance|word|text|transcript|id|index|row|time|start|end|"
+    r"rel|prop|position|frame|track|candidate|measurement|point)(_|$)",
+    re.IGNORECASE,
+)
+
+KNOWN_UNSAFE = {
+    "max_formant",
+    "n_formants",
+    "nformants",
+    "smooth_error",
+    "speaker",
+    "label",
+}
+
+
+def detect_numeric_candidates(data: pd.DataFrame) -> tuple[list[str], pd.DataFrame]:
+    rows: list[dict[str, Any]] = []
+    selected: list[str] = []
+
+    protected = {"__speaker__", "__source_file__", "__row_in_file__", "__vowel__"}
+
+    for col in data.columns:
+        if col in protected:
+            continue
+        reason = ""
+        use = True
+        lower = col.lower()
+
+        if lower in KNOWN_UNSAFE or UNSAFE_PATTERNS.search(lower):
+            use = False
+            reason = "identifier, label, recording-position, or processing-setting pattern"
+
+        # Original bandwidth columns are replaced by converted *_Hz versions.
+        if col in {"B1", "B2", "B3"} and f"{col}_Hz" in data.columns:
+            use = False
+            reason = "replaced by converted Hz column"
+
+        converted = pd.to_numeric(data[col], errors="coerce")
+        nonmissing_original = data[col].notna().sum()
+        numeric_nonmissing = converted.notna().sum()
+        convertible_rate = (
+            float(numeric_nonmissing / nonmissing_original)
+            if nonmissing_original > 0
+            else 0.0
+        )
+
+        if use and convertible_rate < 0.90:
+            use = False
+            reason = f"less than 90% numeric among non-missing values ({convertible_rate:.1%})"
+
+        if use and numeric_nonmissing < 10:
+            use = False
+            reason = "fewer than 10 numeric values"
+
+        if use:
+            finite = converted[np.isfinite(converted)]
+            nunique = int(finite.nunique(dropna=True))
+            if nunique <= 1:
+                use = False
+                reason = "constant or empty numeric column"
+
+        if use:
+            data[col] = converted.where(np.isfinite(converted), np.nan)
+            selected.append(col)
+
+        rows.append({
+            "column": col,
+            "selected_for_all_safe_numeric": use,
+            "reason": reason,
+            "numeric_convertible_rate": convertible_rate,
+            "nonmissing_numeric": int(numeric_nonmissing),
+        })
+
+    # Core features must be kept even if their names are unusual in future revisions.
+    for col in ("F1", "F2", "F3"):
+        if col in data.columns and col not in selected:
+            selected.append(col)
+
+    selected = sorted(dict.fromkeys(selected), key=lambda x: (x not in ["F1", "F2", "F3"], x))
+    return selected, pd.DataFrame(rows)
+
+
+def build_feature_sets(data: pd.DataFrame) -> tuple[dict[str, list[str]], pd.DataFrame]:
+    all_safe, audit = detect_numeric_candidates(data)
+
+    feature_sets: dict[str, list[str]] = {
+        "F1_F2": ["F1", "F2"],
+    }
+    if "F3" in data.columns:
+        feature_sets["F1_F2_F3"] = ["F1", "F2", "F3"]
+    else:
+        feature_sets["F1_F2_F3"] = ["F1", "F2"]
+
+    # Ensure the broad set is not accidentally narrower than the baseline.
+    for col in ("F1", "F2", "F3"):
+        if col in data.columns and col not in all_safe:
+            all_safe.append(col)
+    feature_sets["ALL_SAFE_NUMERIC"] = list(dict.fromkeys(all_safe))
+
+    return feature_sets, audit
+
+
+# -----------------------------------------------------------------------------
+# Grouped, vowel-stratified 80/20 folds
+# -----------------------------------------------------------------------------
+
+def choose_balanced_group_folds(
+    y: np.ndarray,
+    groups: np.ndarray,
+    classes: list[str],
+    n_splits: int,
+    seed: int,
+    n_search: int,
+) -> tuple[np.ndarray, pd.DataFrame, dict[str, Any]]:
+    n = len(y)
+    total_by_class = {c: int(np.sum(y == c)) for c in classes}
+    unique_groups = np.unique(groups)
+    expected = 1.0 / n_splits
+
+    best_assignment: np.ndarray | None = None
+    best_score = float("inf")
+    best_seed = seed
+    best_details: dict[str, Any] = {}
+
+    dummy_x = np.zeros((n, 1), dtype=np.float32)
+
+    for offset in range(max(1, n_search)):
+        candidate_seed = seed + offset
+        splitter = StratifiedGroupKFold(
+            n_splits=n_splits,
+            shuffle=True,
+            random_state=candidate_seed,
+        )
+        assignment = np.full(n, -1, dtype=int)
+        valid = True
+        fold_deviations: list[float] = []
+        speaker_deviations: list[float] = []
+
+        try:
+            for fold, (_, test_idx) in enumerate(splitter.split(dummy_x, y, groups)):
+                assignment[test_idx] = fold
+                test_y = y[test_idx]
+                test_groups = np.unique(groups[test_idx])
+                for c in classes:
+                    denom = total_by_class[c]
+                    frac = float(np.sum(test_y == c) / denom) if denom else 0.0
+                    fold_deviations.append(abs(frac - expected))
+                    if np.sum(test_y == c) == 0:
+                        valid = False
+                speaker_frac = len(test_groups) / len(unique_groups)
+                speaker_deviations.append(abs(speaker_frac - expected))
+        except ValueError:
+            continue
+
+        if (assignment < 0).any() or not valid:
+            continue
+
+        # Primary priority: minimize worst vowel imbalance; secondary: average imbalance.
+        score = (
+            max(fold_deviations, default=1.0)
+            + 0.5 * float(np.mean(fold_deviations))
+            + 0.15 * max(speaker_deviations, default=1.0)
+        )
+
+        if score < best_score:
+            best_score = score
+            best_assignment = assignment.copy()
+            best_seed = candidate_seed
+            best_details = {
+                "objective": score,
+                "max_vowel_fraction_deviation": max(fold_deviations),
+                "mean_vowel_fraction_deviation": float(np.mean(fold_deviations)),
+                "max_speaker_fraction_deviation": max(speaker_deviations),
+            }
+
+    if best_assignment is None:
+        raise RuntimeError(
+            "Could not construct grouped folds containing every vowel. "
+            "This can occur when too few speakers contain the rarest vowel."
+        )
+
+    rows: list[dict[str, Any]] = []
+    for fold in range(n_splits):
+        test_mask = best_assignment == fold
+        train_mask = ~test_mask
+        train_speakers = np.unique(groups[train_mask])
+        test_speakers = np.unique(groups[test_mask])
+        overlap = set(train_speakers).intersection(test_speakers)
+        for c in classes:
+            total = total_by_class[c]
+            test_count = int(np.sum(y[test_mask] == c))
+            train_count = int(np.sum(y[train_mask] == c))
+            rows.append({
+                "fold": fold + 1,
+                "vowel": c,
+                "train_tokens": train_count,
+                "test_tokens": test_count,
+                "test_percent_of_vowel": 100.0 * test_count / total if total else np.nan,
+                "train_speakers": len(train_speakers),
+                "test_speakers": len(test_speakers),
+                "speaker_overlap_count": len(overlap),
+            })
+
+    metadata = {
+        "selected_split_seed": best_seed,
+        "searched_candidates": max(1, n_search),
+        "expected_test_fraction_per_fold": expected,
+        **best_details,
+    }
+    return best_assignment, pd.DataFrame(rows), metadata
+
+
+# -----------------------------------------------------------------------------
+# Models and evaluation
+# -----------------------------------------------------------------------------
+
+def make_pipeline(
+    family: str,
+    classes: list[str],
+    seed: int,
+    rf_trees: int,
+) -> Pipeline:
+    priors = np.repeat(1.0 / len(classes), len(classes))
+
+    if family == "dummy":
+        clf: BaseEstimator = DummyClassifier(strategy="most_frequent")
+        steps = [
+            ("imputer", SimpleImputer(strategy="median")),
+            ("variance", VarianceThreshold()),
+            ("classifier", clf),
+        ]
+    elif family == "centroid":
+        clf = NearestCentroid(metric="euclidean")
+        steps = [
+            ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+            ("variance", VarianceThreshold()),
+            ("scaler", StandardScaler()),
+            ("classifier", clf),
+        ]
+    elif family == "lda":
+        clf = LinearDiscriminantAnalysis(
+            solver="lsqr",
+            shrinkage="auto",
+            priors=priors,
+        )
+        steps = [
+            ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+            ("variance", VarianceThreshold()),
+            ("scaler", StandardScaler()),
+            ("classifier", clf),
+        ]
+    elif family == "qda":
+        clf = QuadraticDiscriminantAnalysis(
+            priors=priors,
+            reg_param=0.10,
+        )
+        steps = [
+            ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+            ("variance", VarianceThreshold()),
+            ("scaler", StandardScaler()),
+            ("classifier", clf),
+        ]
+    elif family == "logistic":
+        clf = LogisticRegression(
+            max_iter=1500,
+            class_weight="balanced",
+            solver="lbfgs",
+            random_state=seed,
+        )
+        steps = [
+            ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+            ("variance", VarianceThreshold()),
+            ("scaler", StandardScaler()),
+            ("classifier", clf),
+        ]
+    elif family == "random_forest":
+        clf = RandomForestClassifier(
+            n_estimators=rf_trees,
+            min_samples_leaf=2,
+            max_features="sqrt",
+            class_weight="balanced_subsample",
+            n_jobs=-1,
+            random_state=seed,
+        )
+        steps = [
+            ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+            ("variance", VarianceThreshold()),
+            ("classifier", clf),
+        ]
+    else:
+        raise ValueError(f"Unknown model family: {family}")
+
+    return Pipeline(steps)
+
+
+def model_configurations(skip_rf: bool) -> list[ModelConfig]:
+    configs = [
+        ModelConfig("Majority class", "F1_F2", "dummy"),
+        ModelConfig("Nearest centroid", "F1_F2", "centroid"),
+        ModelConfig("LDA shrinkage", "F1_F2", "lda"),
+        ModelConfig("Logistic regression", "F1_F2", "logistic"),
+        ModelConfig("Nearest centroid", "F1_F2_F3", "centroid"),
+        ModelConfig("LDA shrinkage", "F1_F2_F3", "lda"),
+        ModelConfig("QDA regularized", "F1_F2_F3", "qda"),
+        ModelConfig("Logistic regression", "F1_F2_F3", "logistic"),
+        ModelConfig("LDA shrinkage", "ALL_SAFE_NUMERIC", "lda"),
+        ModelConfig("Logistic regression", "ALL_SAFE_NUMERIC", "logistic"),
+    ]
+    if not skip_rf:
+        configs.extend([
+            ModelConfig("Random forest", "F1_F2_F3", "random_forest"),
+            ModelConfig("Random forest", "ALL_SAFE_NUMERIC", "random_forest"),
+        ])
+    return configs
+
+
+def evaluate_config(
+    config: ModelConfig,
+    data: pd.DataFrame,
+    feature_sets: dict[str, list[str]],
+    fold_assignment: np.ndarray,
+    classes: list[str],
+    n_splits: int,
+    seed: int,
+    rf_trees: int,
+) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
+    features = feature_sets[config.feature_set]
+    x = data[features]
+    y = data["__vowel__"].to_numpy(str)
+    speakers = data["__speaker__"].to_numpy(str)
+
+    pred_frames: list[pd.DataFrame] = []
+    fold_rows: list[dict[str, Any]] = []
+    error_messages: list[str] = []
+
+    for fold in range(n_splits):
+        test_mask = fold_assignment == fold
+        train_mask = ~test_mask
+        pipe = make_pipeline(config.family, classes, seed + fold, rf_trees)
+
+        try:
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                pipe.fit(x.loc[train_mask], y[train_mask])
+                pred = pipe.predict(x.loc[test_mask])
+                caught_text = sorted({str(w.message) for w in caught})
+                if caught_text:
+                    error_messages.extend(
+                        [f"{config.config_id}, fold {fold + 1}: {msg}" for msg in caught_text]
+                    )
+        except Exception as exc:  # noqa: BLE001
+            error_messages.append(
+                f"FAILED {config.config_id}, fold {fold + 1}: {type(exc).__name__}: {exc}"
+            )
+            continue
+
+        y_test = y[test_mask]
+        speaker_test = speakers[test_mask]
+        row_idx = np.flatnonzero(test_mask)
+
+        confidence = np.full(len(pred), np.nan)
+        if hasattr(pipe, "predict_proba"):
+            try:
+                proba = pipe.predict_proba(x.loc[test_mask])
+                confidence = np.max(proba, axis=1)
+            except Exception:  # noqa: BLE001
+                pass
+
+        pred_frames.append(pd.DataFrame({
+            "row_index": row_idx,
+            "fold": fold + 1,
+            "speaker": speaker_test,
+            "true_vowel": y_test,
+            "predicted_vowel": pred,
+            "confidence": confidence,
+            "config_id": config.config_id,
+            "model": config.name,
+            "feature_set": config.feature_set,
+        }))
+
+        fold_rows.append({
+            "config_id": config.config_id,
+            "model": config.name,
+            "feature_set": config.feature_set,
+            "fold": fold + 1,
+            "train_tokens": int(train_mask.sum()),
+            "test_tokens": int(test_mask.sum()),
+            "train_speakers": int(np.unique(speakers[train_mask]).size),
+            "test_speakers": int(np.unique(speakers[test_mask]).size),
+            "accuracy": accuracy_score(y_test, pred),
+            "balanced_accuracy": fixed_balanced_accuracy(y_test, pred, classes),
+            "macro_f1": f1_score(
+                y_test, pred, labels=classes, average="macro", zero_division=0
+            ),
+        })
+
+    if not pred_frames:
+        return pd.DataFrame(), pd.DataFrame(fold_rows), error_messages
+
+    return pd.concat(pred_frames, ignore_index=True), pd.DataFrame(fold_rows), error_messages
+
+
+def summarize_predictions(
+    config: ModelConfig,
+    preds: pd.DataFrame,
+    fold_metrics: pd.DataFrame,
+    classes: list[str],
+    n_bootstrap: int,
+    seed: int,
+) -> tuple[dict[str, Any], pd.DataFrame, pd.DataFrame]:
+    y_true = preds["true_vowel"]
+    y_pred = preds["predicted_vowel"]
+
+    per_speaker_rows: list[dict[str, Any]] = []
+    for speaker, g in preds.groupby("speaker", sort=True):
+        per_speaker_rows.append({
+            "config_id": config.config_id,
+            "model": config.name,
+            "feature_set": config.feature_set,
+            "speaker": speaker,
+            "n_tokens": len(g),
+            "accuracy": accuracy_score(g["true_vowel"], g["predicted_vowel"]),
+            "balanced_accuracy": fixed_balanced_accuracy(
+                g["true_vowel"], g["predicted_vowel"], classes
+            ),
+            "macro_f1": f1_score(
+                g["true_vowel"],
+                g["predicted_vowel"],
+                labels=classes,
+                average="macro",
+                zero_division=0,
+            ),
+            "n_true_vowels_present": int(g["true_vowel"].nunique()),
+        })
+    per_speaker = pd.DataFrame(per_speaker_rows)
+
+    precision, recall, f1, support = precision_recall_fscore_support(
+        y_true,
+        y_pred,
+        labels=classes,
+        zero_division=0,
+    )
+    per_vowel = pd.DataFrame({
+        "config_id": config.config_id,
+        "model": config.name,
+        "feature_set": config.feature_set,
+        "vowel": classes,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+        "support": support,
+    })
+
+    speaker_scores = per_speaker["balanced_accuracy"].to_numpy(float)
+    rng = np.random.default_rng(seed)
+    if len(speaker_scores) and n_bootstrap > 0:
+        samples = rng.choice(
+            speaker_scores,
+            size=(n_bootstrap, len(speaker_scores)),
+            replace=True,
+        ).mean(axis=1)
+        ci_low, ci_high = np.quantile(samples, [0.025, 0.975])
+    else:
+        ci_low = ci_high = np.nan
+
+    summary = {
+        "config_id": config.config_id,
+        "model": config.name,
+        "feature_set": config.feature_set,
+        "n_features": np.nan,
+        "n_oof_tokens": len(preds),
+        "n_oof_speakers": preds["speaker"].nunique(),
+        "accuracy_oof": accuracy_score(y_true, y_pred),
+        "balanced_accuracy_oof": fixed_balanced_accuracy(y_true, y_pred, classes),
+        "macro_f1_oof": f1_score(
+            y_true, y_pred, labels=classes, average="macro", zero_division=0
+        ),
+        "speaker_macro_accuracy": per_speaker["accuracy"].mean(),
+        "speaker_macro_balanced_accuracy": per_speaker["balanced_accuracy"].mean(),
+        "speaker_macro_balanced_ci_low": ci_low,
+        "speaker_macro_balanced_ci_high": ci_high,
+        "speaker_macro_f1": per_speaker["macro_f1"].mean(),
+        "fold_balanced_accuracy_mean": fold_metrics["balanced_accuracy"].mean(),
+        "fold_balanced_accuracy_sd": fold_metrics["balanced_accuracy"].std(ddof=1),
+        "fold_macro_f1_mean": fold_metrics["macro_f1"].mean(),
+        "fold_macro_f1_sd": fold_metrics["macro_f1"].std(ddof=1),
+        "status": "OK",
+    }
+    return summary, per_vowel, per_speaker
+
+
+# -----------------------------------------------------------------------------
+# Plotting
+# -----------------------------------------------------------------------------
+
+def save_dataset_plot(data: pd.DataFrame, classes: list[str], path: Path) -> None:
+    counts = data["__vowel__"].value_counts().reindex(classes, fill_value=0)
+    fig, ax = plt.subplots(figsize=(8, 4.8))
+    bars = ax.bar(counts.index, counts.values)
+    ax.set_title("Vowel token counts")
+    ax.set_xlabel("Vowel")
+    ax.set_ylabel("Tokens")
+    for bar, value in zip(bars, counts.values):
+        ax.text(bar.get_x() + bar.get_width() / 2, value, f"{value:,}", ha="center", va="bottom")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+
+
+def save_split_plot(split_audit: pd.DataFrame, classes: list[str], path: Path) -> None:
+    p = split_audit.pivot(index="fold", columns="vowel", values="test_percent_of_vowel")
+    p = p.reindex(columns=classes)
+    fig, ax = plt.subplots(figsize=(9, 4.8))
+    im = ax.imshow(p.to_numpy(), aspect="auto")
+    ax.set_title("Percentage of each vowel assigned to each test fold")
+    ax.set_xlabel("Vowel")
+    ax.set_ylabel("Fold")
+    ax.set_xticks(np.arange(len(p.columns)), p.columns)
+    ax.set_yticks(np.arange(len(p.index)), p.index)
+    for i in range(p.shape[0]):
+        for j in range(p.shape[1]):
+            ax.text(j, i, f"{p.iloc[i, j]:.1f}%", ha="center", va="center")
+    fig.colorbar(im, ax=ax, label="Percent of vowel tokens")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+
+
+def save_model_plot(summary: pd.DataFrame, path: Path) -> None:
+    d = summary.sort_values("speaker_macro_balanced_accuracy", ascending=True).copy()
+    labels = d["model"] + " | " + d["feature_set"]
+    y = np.arange(len(d))
+    score = d["speaker_macro_balanced_accuracy"].to_numpy(float)
+    low = d["speaker_macro_balanced_ci_low"].to_numpy(float)
+    high = d["speaker_macro_balanced_ci_high"].to_numpy(float)
+    xerr = np.vstack([score - low, high - score])
+
+    fig, ax = plt.subplots(figsize=(11, max(5, 0.48 * len(d) + 1.5)))
+    ax.barh(y, score)
+    ax.errorbar(score, y, xerr=xerr, fmt="none", capsize=3)
+    ax.axvline(0.20, linestyle="--", linewidth=1, label="Uniform five-class chance = 0.20")
+    ax.set_yticks(y, labels)
+    ax.set_xlim(0, min(1.0, max(0.55, float(np.nanmax(high)) + 0.08)))
+    ax.set_xlabel("Speaker-macro balanced accuracy")
+    ax.set_title("Speaker-independent model comparison")
+    ax.legend(loc="lower right")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+
+
+def save_confusion_plot(preds: pd.DataFrame, classes: list[str], title: str, path: Path) -> None:
+    cm = confusion_matrix(
+        preds["true_vowel"],
+        preds["predicted_vowel"],
+        labels=classes,
+        normalize="true",
+    )
+    fig, ax = plt.subplots(figsize=(7, 6))
+    im = ax.imshow(cm, vmin=0, vmax=1)
+    ax.set_title(title)
+    ax.set_xlabel("Predicted vowel")
+    ax.set_ylabel("True vowel")
+    ax.set_xticks(np.arange(len(classes)), classes)
+    ax.set_yticks(np.arange(len(classes)), classes)
+    for i in range(len(classes)):
+        for j in range(len(classes)):
+            ax.text(j, i, f"{cm[i, j]:.2f}", ha="center", va="center")
+    fig.colorbar(im, ax=ax, label="Row-normalized proportion")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+
+
+def save_per_vowel_plot(per_vowel: pd.DataFrame, path: Path) -> None:
+    d = per_vowel.copy()
+    x = np.arange(len(d))
+    width = 0.36
+    fig, ax = plt.subplots(figsize=(8, 4.8))
+    ax.bar(x - width / 2, d["recall"], width, label="Recall")
+    ax.bar(x + width / 2, d["f1"], width, label="F1")
+    ax.set_xticks(x, d["vowel"])
+    ax.set_ylim(0, 1)
+    ax.set_xlabel("Vowel")
+    ax.set_ylabel("Score")
+    ax.set_title("Best model performance by vowel")
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+
+
+def save_per_speaker_plot(per_speaker: pd.DataFrame, path: Path) -> None:
+    d = per_speaker.sort_values("balanced_accuracy", ascending=True)
+    fig, ax = plt.subplots(figsize=(11, max(6, len(d) * 0.22)))
+    ax.barh(np.arange(len(d)), d["balanced_accuracy"])
+    ax.axvline(0.20, linestyle="--", linewidth=1)
+    ax.set_yticks(np.arange(len(d)), d["speaker"], fontsize=7)
+    ax.set_xlim(0, 1)
+    ax.set_xlabel("Five-vowel balanced accuracy")
+    ax.set_title("Best model performance for each unseen speaker")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+
+
+# -----------------------------------------------------------------------------
+# HTML report
+# -----------------------------------------------------------------------------
+
+def dataframe_html(df: pd.DataFrame, digits: int = 4, max_rows: int | None = None) -> str:
+    d = df.copy()
+    if max_rows is not None and len(d) > max_rows:
+        d = d.head(max_rows)
+    numeric = d.select_dtypes(include=[np.number]).columns
+    for c in numeric:
+        d[c] = d[c].map(lambda x: round(float(x), digits) if pd.notna(x) else x)
+    return "<div class='table-wrap'>" + d.to_html(index=False, escape=True) + "</div>"
+
+
+def build_html_report(
+    out_dir: Path,
+    args: argparse.Namespace,
+    data: pd.DataFrame,
+    inventory: pd.DataFrame,
+    feature_sets: dict[str, list[str]],
+    feature_audit: pd.DataFrame,
+    split_audit: pd.DataFrame,
+    split_metadata: dict[str, Any],
+    model_summary: pd.DataFrame,
+    fold_results: pd.DataFrame,
+    best_config: ModelConfig,
+    best_per_vowel: pd.DataFrame,
+    best_per_speaker: pd.DataFrame,
+    warnings_list: list[str],
+) -> None:
+    best_row = model_summary.loc[model_summary["config_id"] == best_config.config_id].iloc[0]
+    counts = data["__vowel__"].value_counts().reindex(args.vowels, fill_value=0)
+    speaker_count = data["__speaker__"].nunique()
+
+    feature_rows = []
+    for name, cols in feature_sets.items():
+        feature_rows.append({
+            "feature_set": name,
+            "n_features": len(cols),
+            "features": ", ".join(cols),
+        })
+    feature_df = pd.DataFrame(feature_rows)
+
+    warning_html = "".join(f"<li>{html.escape(w)}</li>" for w in warnings_list)
+    if not warning_html:
+        warning_html = "<li>No automatic warnings.</li>"
+
+    split_summary = split_audit.groupby("fold", as_index=False).agg(
+        train_speakers=("train_speakers", "first"),
+        test_speakers=("test_speakers", "first"),
+        speaker_overlap_count=("speaker_overlap_count", "max"),
+        minimum_test_percent=("test_percent_of_vowel", "min"),
+        maximum_test_percent=("test_percent_of_vowel", "max"),
+    )
+
+    css = """
+    body{font-family:Arial,Helvetica,sans-serif;margin:2rem;line-height:1.45;color:#222;max-width:1450px}
+    h1{margin-bottom:.3rem} h2{margin-top:2.6rem;border-bottom:2px solid #ddd;padding-bottom:.3rem}
+    h3{margin-top:1.8rem}.note{background:#f5f5f5;border-left:4px solid #777;padding:1rem;margin:1rem 0}
+    .good{background:#eef8ee;border-left:4px solid #4c8;padding:1rem;margin:1rem 0}
+    .table-wrap{overflow-x:auto;border:1px solid #ddd;margin:1rem 0 2rem}
+    table{border-collapse:collapse;width:100%;font-size:.82rem}th,td{border:1px solid #ddd;padding:.42rem;text-align:right;white-space:nowrap}
+    th{background:#eee}td:first-child,th:first-child{text-align:left}img{max-width:100%;border:1px solid #ddd;margin:1rem 0 2rem}
+    code{background:#f2f2f2;padding:.1rem .25rem}.small{font-size:.9rem;color:#444}
+    """
+
+    report = f"""<!doctype html>
+<html lang='en'>
+<head><meta charset='utf-8'><title>Speaker-independent vowel classification</title><style>{css}</style></head>
+<body>
+<h1>Speaker-independent five-class vowel classification</h1>
+<p class='small'>Raw acoustic features; speaker-disjoint, vowel-stratified 5-fold evaluation.</p>
+
+<div class='good'>
+<b>Automatic result:</b> The best tested configuration was
+<b>{html.escape(best_config.name)}</b> with <b>{html.escape(best_config.feature_set)}</b>.
+Its speaker-macro balanced accuracy was <b>{best_row['speaker_macro_balanced_accuracy']:.3f}</b>
+(95% speaker-bootstrap CI {best_row['speaker_macro_balanced_ci_low']:.3f}–{best_row['speaker_macro_balanced_ci_high']:.3f}).
+Its out-of-fold token balanced accuracy was <b>{best_row['balanced_accuracy_oof']:.3f}</b>,
+macro-F1 was <b>{best_row['macro_f1_oof']:.3f}</b>, and ordinary accuracy was
+<b>{best_row['accuracy_oof']:.3f}</b>.
+</div>
+
+<div class='note'>
+<b>Evaluation design:</b> approximately 80% of speakers train the model and 20% test it in each fold.
+A speaker never occurs in both sets. The fold search attempts to place approximately 20% of
+<b>each vowel</b> in every test fold. Because whole speakers must stay together, exact 20.00% splits
+are not always mathematically possible. Every speaker is tested once across the five folds.
+</div>
+
+<h2>Dataset</h2>
+<p><b>{len(data):,}</b> retained vowel tokens from <b>{speaker_count}</b> speaker/audio files.</p>
+<img src='assets/vowel_counts.png' alt='Vowel counts'>
+{dataframe_html(pd.DataFrame({'vowel': counts.index, 'tokens': counts.values, 'percent': 100*counts.values/len(data)}))}
+
+<h3>Input inventory</h3>
+{dataframe_html(inventory)}
+
+<h2>Features</h2>
+<p>All processing choices are explicit below. Identifier, label, file, recording-position and known
+processing-setting columns were excluded from the broad feature set. Original B1/B2/B3 columns
+were replaced by Hz-scale versions when they looked logarithmic.</p>
+{dataframe_html(feature_df)}
+<h3>Feature-column audit</h3>
+{dataframe_html(feature_audit)}
+
+<h2>Train/test split audit</h2>
+<p>Selected split seed: <code>{split_metadata['selected_split_seed']}</code> after examining
+{split_metadata['searched_candidates']} candidate grouped stratifications.</p>
+<img src='assets/split_balance.png' alt='Split balance'>
+{dataframe_html(split_summary)}
+{dataframe_html(split_audit)}
+
+<h2>Model comparison</h2>
+<p>The primary selection metric is <b>speaker-macro balanced accuracy</b>: five-vowel recall is
+calculated separately for each unseen speaker, then speakers receive equal weight. The dashed line
+at 0.20 is the uniform five-class reference level.</p>
+<img src='assets/model_comparison.png' alt='Model comparison'>
+{dataframe_html(model_summary)}
+
+<h3>Fold-level results</h3>
+{dataframe_html(fold_results)}
+
+<h2>Best configuration</h2>
+<p><b>{html.escape(best_config.name)} — {html.escape(best_config.feature_set)}</b></p>
+<img src='assets/confusion_matrix_best.png' alt='Confusion matrix'>
+<img src='assets/per_vowel_best.png' alt='Per-vowel results'>
+{dataframe_html(best_per_vowel)}
+
+<h3>Generalization across unseen speakers</h3>
+<img src='assets/per_speaker_best.png' alt='Per-speaker results'>
+{dataframe_html(best_per_speaker)}
+
+<h2>Saved system</h2>
+<p>The selected pipeline was refitted on all available speakers and saved as:</p>
+<p><code>{html.escape(str(out_dir / 'best_vowel_classifier.joblib'))}</code></p>
+<p>Its feature and class definitions are stored in <code>best_model_metadata.json</code>. This final
+fit is intended for later prediction on new data; its performance estimate comes from the
+speaker-disjoint out-of-fold evaluation above, not from the refit itself.</p>
+
+<h2>Warnings and interpretation cautions</h2>
+<ul>{warning_html}</ul>
+<ul>
+<li>One CSV row is treated as one vowel token, consistent with the new-fave point output used here.</li>
+<li>Balanced accuracy and macro-F1 are more informative than ordinary accuracy because /u/ is rarer.</li>
+<li>The test sets were never oversampled or undersampled.</li>
+<li>The current study uses raw features. A Lobanov comparison can later use the exact same speaker folds.</li>
+<li>Model comparison is exploratory; hyperparameters were fixed rather than tuned on the outer test folds.</li>
+</ul>
+</body></html>"""
+
+    (out_dir / "vowel_classification_report.html").write_text(report, encoding="utf-8")
+
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+
+def main() -> None:
+    args = parse_args()
+    args.vowels = [normalize_vowel(v) for v in args.vowels]
+    if len(set(args.vowels)) != len(args.vowels):
+        raise ValueError("Duplicate vowels after normalization.")
+    if args.folds < 2:
+        raise ValueError("--folds must be at least 2")
+
+    out = args.output_dir.resolve()
+    assets = out / "assets"
+    out.mkdir(parents=True, exist_ok=True)
+    assets.mkdir(parents=True, exist_ok=True)
+
+    print("=== Speaker-independent vowel classification ===")
+    print(f"Input: {args.input_dir.resolve()}")
+    print(f"Output: {out}")
+    print(f"Vowels: {args.vowels}")
+
+    data, inventory, warnings_list = load_point_data(
+        args.input_dir.resolve(), args.label_column, args.vowels
+    )
+    if data["__speaker__"].nunique() < args.min_speakers:
+        raise RuntimeError(
+            f"Only {data['__speaker__'].nunique()} speakers remained; minimum is {args.min_speakers}."
+        )
+
+    missing_after = [v for v in args.vowels if v not in set(data["__vowel__"])]
+    if missing_after:
+        raise RuntimeError(f"Missing target classes after filtering: {missing_after}")
+
+    feature_sets, feature_audit = build_feature_sets(data)
+    for name, cols in feature_sets.items():
+        print(f"Feature set {name}: {len(cols)} column(s)")
+        if not cols:
+            raise RuntimeError(f"Feature set {name} is empty")
+
+    y = data["__vowel__"].to_numpy(str)
+    groups = data["__speaker__"].to_numpy(str)
+    fold_assignment, split_audit, split_metadata = choose_balanced_group_folds(
+        y=y,
+        groups=groups,
+        classes=args.vowels,
+        n_splits=args.folds,
+        seed=args.seed,
+        n_search=args.split_search,
+    )
+    data["__test_fold__"] = fold_assignment + 1
+    print(
+        "Selected grouped split seed",
+        split_metadata["selected_split_seed"],
+        "with max per-vowel deviation",
+        f"{100*split_metadata['max_vowel_fraction_deviation']:.2f} percentage points",
+    )
+
+    # Save audits before model fitting so partial results survive a later model failure.
+    inventory.to_csv(out / "input_inventory.csv", index=False)
+    feature_audit.to_csv(out / "feature_column_audit.csv", index=False)
+    split_audit.to_csv(out / "split_audit.csv", index=False)
+    data[["__speaker__", "__source_file__", "__row_in_file__", "__vowel__", "__test_fold__"]].to_csv(
+        out / "token_fold_assignments.csv", index=False
+    )
+
+    configs = model_configurations(args.skip_random_forest)
+    summaries: list[dict[str, Any]] = []
+    all_fold_results: list[pd.DataFrame] = []
+    all_per_vowel: list[pd.DataFrame] = []
+    all_per_speaker: list[pd.DataFrame] = []
+    predictions_by_config: dict[str, pd.DataFrame] = {}
+
+    for idx, config in enumerate(configs, start=1):
+        print(f"[{idx}/{len(configs)}] {config.name} | {config.feature_set}")
+        if config.feature_set not in feature_sets:
+            warnings_list.append(f"Skipped {config.config_id}: missing feature set")
+            continue
+
+        preds, fold_metrics, messages = evaluate_config(
+            config=config,
+            data=data,
+            feature_sets=feature_sets,
+            fold_assignment=fold_assignment,
+            classes=args.vowels,
+            n_splits=args.folds,
+            seed=args.seed,
+            rf_trees=args.rf_trees,
+        )
+        warnings_list.extend(messages)
+        if preds.empty or len(fold_metrics) != args.folds:
+            summaries.append({
+                "config_id": config.config_id,
+                "model": config.name,
+                "feature_set": config.feature_set,
+                "n_features": len(feature_sets[config.feature_set]),
+                "status": "FAILED OR INCOMPLETE",
+            })
+            continue
+
+        summary, per_vowel, per_speaker = summarize_predictions(
+            config,
+            preds,
+            fold_metrics,
+            args.vowels,
+            args.bootstrap,
+            args.seed,
+        )
+        summary["n_features"] = len(feature_sets[config.feature_set])
+        summaries.append(summary)
+        all_fold_results.append(fold_metrics)
+        all_per_vowel.append(per_vowel)
+        all_per_speaker.append(per_speaker)
+        predictions_by_config[config.config_id] = preds
+
+    model_summary = pd.DataFrame(summaries)
+    if model_summary.empty or "speaker_macro_balanced_accuracy" not in model_summary.columns:
+        raise RuntimeError("No model completed successfully. See warnings above.")
+
+    successful = model_summary[
+        model_summary["speaker_macro_balanced_accuracy"].notna()
+    ].copy()
+    if successful.empty:
+        raise RuntimeError("No model completed successfully.")
+
+    successful = successful.sort_values(
+        ["speaker_macro_balanced_accuracy", "speaker_macro_f1"],
+        ascending=False,
+    )
+    failed = model_summary[model_summary["speaker_macro_balanced_accuracy"].isna()].copy()
+    model_summary = pd.concat([successful, failed], ignore_index=True)
+
+    fold_results = pd.concat(all_fold_results, ignore_index=True)
+    per_vowel_all = pd.concat(all_per_vowel, ignore_index=True)
+    per_speaker_all = pd.concat(all_per_speaker, ignore_index=True)
+
+    best_id = str(successful.iloc[0]["config_id"])
+    config_lookup = {c.config_id: c for c in configs}
+    best_config = config_lookup[best_id]
+    best_preds = predictions_by_config[best_id].sort_values("row_index").reset_index(drop=True)
+    best_per_vowel = per_vowel_all[per_vowel_all["config_id"] == best_id].copy()
+    best_per_speaker = per_speaker_all[per_speaker_all["config_id"] == best_id].copy()
+
+    model_summary.to_csv(out / "model_results.csv", index=False)
+    fold_results.to_csv(out / "fold_results.csv", index=False)
+    per_vowel_all.to_csv(out / "per_vowel_results.csv", index=False)
+    per_speaker_all.to_csv(out / "per_speaker_results.csv", index=False)
+
+    # Add traceability columns to best predictions.
+    trace = data.loc[best_preds["row_index"], [
+        "__source_file__", "__row_in_file__", "__speaker__", "__vowel__"
+    ]].reset_index(drop=True)
+    best_preds = pd.concat([best_preds.reset_index(drop=True), trace], axis=1)
+    best_preds.to_csv(out / "oof_predictions_best.csv", index=False)
+
+    save_dataset_plot(data, args.vowels, assets / "vowel_counts.png")
+    save_split_plot(split_audit, args.vowels, assets / "split_balance.png")
+    save_model_plot(successful, assets / "model_comparison.png")
+    save_confusion_plot(
+        best_preds,
+        args.vowels,
+        f"Out-of-fold confusion matrix: {best_config.name} | {best_config.feature_set}",
+        assets / "confusion_matrix_best.png",
+    )
+    save_per_vowel_plot(best_per_vowel, assets / "per_vowel_best.png")
+    save_per_speaker_plot(best_per_speaker, assets / "per_speaker_best.png")
+
+    # Refit the selected configuration on all available speakers for later deployment.
+    best_features = feature_sets[best_config.feature_set]
+    final_pipeline = make_pipeline(
+        best_config.family,
+        args.vowels,
+        args.seed,
+        args.rf_trees,
+    )
+    final_pipeline.fit(data[best_features], data["__vowel__"].to_numpy(str))
+    joblib.dump(final_pipeline, out / "best_vowel_classifier.joblib")
+
+    metadata = {
+        "best_config_id": best_config.config_id,
+        "model": best_config.name,
+        "model_family": best_config.family,
+        "feature_set": best_config.feature_set,
+        "features": best_features,
+        "classes": args.vowels,
+        "speaker_definition": "CSV filename stem",
+        "row_definition": "one new-fave point row treated as one vowel token",
+        "input_directory": str(args.input_dir.resolve()),
+        "n_tokens": len(data),
+        "n_speakers": int(data["__speaker__"].nunique()),
+        "folds": args.folds,
+        "split_metadata": split_metadata,
+        "seed": args.seed,
+    }
+    (out / "best_model_metadata.json").write_text(
+        json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    (out / "analysis_config.json").write_text(
+        json.dumps(vars(args), indent=2, ensure_ascii=False, default=str), encoding="utf-8"
+    )
+    (out / "analysis_warnings.txt").write_text(
+        "\n".join(warnings_list) if warnings_list else "No automatic warnings.\n",
+        encoding="utf-8",
+    )
+
+    build_html_report(
+        out_dir=out,
+        args=args,
+        data=data,
+        inventory=inventory,
+        feature_sets=feature_sets,
+        feature_audit=feature_audit,
+        split_audit=split_audit,
+        split_metadata=split_metadata,
+        model_summary=model_summary,
+        fold_results=fold_results,
+        best_config=best_config,
+        best_per_vowel=best_per_vowel,
+        best_per_speaker=best_per_speaker,
+        warnings_list=warnings_list,
+    )
+
+    print("\n=== Complete ===")
+    print(f"Best configuration: {best_config.name} | {best_config.feature_set}")
+    print(
+        "Speaker-macro balanced accuracy:",
+        f"{successful.iloc[0]['speaker_macro_balanced_accuracy']:.4f}",
+    )
+    print(f"Report: {out / 'vowel_classification_report.html'}")
+    print(f"Saved model: {out / 'best_vowel_classifier.joblib'}")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Interrupted.", file=sys.stderr)
+        raise
+    except Exception as exc:  # noqa: BLE001
+        print(f"ERROR: {type(exc).__name__}: {exc}", file=sys.stderr)
+        traceback.print_exc()
+        sys.exit(1)

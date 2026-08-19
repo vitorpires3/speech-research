@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+fcd45f4d-Audio_SP21.csv,fcd45f4d-Audio_SP21,data/raw/sound/fcd45f4d-Audio_SP21.v0.wav,2661.072,1330.536,time column: time,audio_duration,2573,1545,1028,19.52875,2646.43775

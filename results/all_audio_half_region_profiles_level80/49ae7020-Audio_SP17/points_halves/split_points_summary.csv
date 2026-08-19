@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+49ae7020-Audio_SP17.csv,49ae7020-Audio_SP17,data/raw/sound/49ae7020-Audio_SP17.v0.wav,2783.088,1391.544,time column: time,audio_duration,2472,1395,1077,33.56275,2764.95875

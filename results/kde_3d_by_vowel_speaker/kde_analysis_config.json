@@ -1,0 +1,44 @@
+{
+  "input_dir": "/home/pires/projects/speech-research/data/processed/new_fave_points",
+  "output_dir": "/home/pires/projects/speech-research/results/kde_3d_by_vowel_speaker",
+  "axes": [
+    "F1",
+    "F2",
+    "F3"
+  ],
+  "label_column": "label",
+  "speaker_column": null,
+  "vowels": [
+    "i",
+    "e",
+    "a",
+    "o",
+    "u"
+  ],
+  "min_points": 25,
+  "max_fit_points": 1000,
+  "max_plot_points": 800,
+  "bandwidths": [
+    0.2,
+    0.3,
+    0.45,
+    0.6,
+    0.8,
+    1.0
+  ],
+  "cv_folds": 3,
+  "grid_size": 28,
+  "grid_padding": 2.5,
+  "robust_z_cutoff": 6.0,
+  "seed": 20260721,
+  "scaler_mean": [
+    518.2885777081074,
+    1600.5417780705764,
+    2623.2940955768195
+  ],
+  "scaler_scale": [
+    141.9095924105015,
+    491.13929487611915,
+    469.9096821365307
+  ]
+}

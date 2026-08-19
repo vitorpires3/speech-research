@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+e90f8e4d-Audio_SP22.csv,e90f8e4d-Audio_SP22,data/raw/sound/e90f8e4d-Audio_SP22.v0.wav,2834.928,1417.464,time column: time,audio_duration,2622,1407,1215,34.37775,2822.82875

@@ -1,0 +1,2352 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+
+<title>
+Vowel classifier 12-way comparison
+</title>
+
+<style>
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 2rem;
+    line-height: 1.45;
+    color: #222;
+    max-width: 1500px;
+}
+
+h1 {
+    margin-bottom: .3rem;
+}
+
+h2 {
+    margin-top: 2.6rem;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: .3rem;
+}
+
+h3 {
+    margin-top: 2rem;
+}
+
+.good {
+    background: #eef8ee;
+    border-left: 4px solid #4c8;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.note {
+    background: #f5f5f5;
+    border-left: 4px solid #777;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.table-wrap {
+    overflow-x: auto;
+    border: 1px solid #ddd;
+    margin: 1rem 0 2rem;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .82rem;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: .42rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+th {
+    background: #eee;
+}
+
+td:first-child,
+th:first-child {
+    text-align: left;
+}
+
+img {
+    max-width: 100%;
+    border: 1px solid #ddd;
+    margin: 1rem 0 2rem;
+}
+
+code {
+    background: #f2f2f2;
+    padding: .1rem .25rem;
+}
+</style>
+</head>
+
+<body>
+
+<h1>
+Vowel classification:
+4 classifiers × 3 feature sets
+</h1>
+
+<div class="good">
+
+<b>Best by ordinary out-of-fold test accuracy:</b>
+
+Random forest
+with
+ALL_SAFE_NUMERIC
+
+—
+
+<b>74.38% correct test tokens</b>.
+
+</div>
+
+<div class="note">
+
+The main result is ordinary out-of-fold accuracy:
+
+<code>
+correct test-token predictions / total test tokens
+</code>.
+
+Balanced accuracy, speaker-macro balanced accuracy
+and Macro-F1 are also reported because the five vowel
+classes are not equally frequent.
+
+</div>
+
+<h2>All 12 configurations</h2>
+
+<img
+    src="assets/accuracy_all_12.png"
+    alt="Accuracy of all twelve configurations"
+>
+
+<div class="table-wrap"><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>rank</th>
+      <th>model</th>
+      <th>feature_set</th>
+      <th>n_features</th>
+      <th>features</th>
+      <th>accuracy_oof_percent</th>
+      <th>balanced_accuracy_oof_percent</th>
+      <th>speaker_macro_balanced_accuracy_percent</th>
+      <th>macro_f1_oof_percent</th>
+      <th>fold_accuracy_mean_percent</th>
+      <th>fold_accuracy_sd_percent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>6</td>
+      <td>F1, F2, F3, B1_Hz, B2_Hz, B3_Hz</td>
+      <td>74.3847</td>
+      <td>65.5480</td>
+      <td>64.2989</td>
+      <td>66.6377</td>
+      <td>74.3691</td>
+      <td>2.0624</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>F1, F2, F3</td>
+      <td>72.7887</td>
+      <td>63.9407</td>
+      <td>63.0791</td>
+      <td>64.7887</td>
+      <td>72.7690</td>
+      <td>2.1486</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>F1, F2, F3</td>
+      <td>72.7815</td>
+      <td>60.5231</td>
+      <td>59.6937</td>
+      <td>60.0331</td>
+      <td>72.7669</td>
+      <td>2.1447</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>F1, F2</td>
+      <td>72.2663</td>
+      <td>60.1076</td>
+      <td>59.3045</td>
+      <td>59.5908</td>
+      <td>72.2312</td>
+      <td>2.1432</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>6</td>
+      <td>F1, F2, F3, B1_Hz, B2_Hz, B3_Hz</td>
+      <td>72.2627</td>
+      <td>61.1844</td>
+      <td>60.0403</td>
+      <td>61.3851</td>
+      <td>72.2560</td>
+      <td>2.7427</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>F1, F2</td>
+      <td>69.9285</td>
+      <td>61.3359</td>
+      <td>60.5133</td>
+      <td>62.0114</td>
+      <td>69.8959</td>
+      <td>2.2827</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>F1, F2, F3</td>
+      <td>67.7112</td>
+      <td>68.4782</td>
+      <td>68.3293</td>
+      <td>63.8025</td>
+      <td>67.6689</td>
+      <td>5.4922</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>F1, F2</td>
+      <td>67.5092</td>
+      <td>68.2423</td>
+      <td>68.2299</td>
+      <td>63.6113</td>
+      <td>67.4407</td>
+      <td>6.1518</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>6</td>
+      <td>F1, F2, F3, B1_Hz, B2_Hz, B3_Hz</td>
+      <td>67.4161</td>
+      <td>68.1987</td>
+      <td>67.9340</td>
+      <td>63.5768</td>
+      <td>67.3606</td>
+      <td>5.2828</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>F1, F2</td>
+      <td>66.8836</td>
+      <td>68.1062</td>
+      <td>68.1142</td>
+      <td>63.1580</td>
+      <td>66.8114</td>
+      <td>6.5576</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>F1, F2, F3</td>
+      <td>64.7392</td>
+      <td>65.8630</td>
+      <td>65.8148</td>
+      <td>61.1053</td>
+      <td>64.6471</td>
+      <td>6.9743</td>
+    </tr>
+    <tr>
+      <td>12</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>6</td>
+      <td>F1, F2, F3, B1_Hz, B2_Hz, B3_Hz</td>
+      <td>62.2232</td>
+      <td>62.9922</td>
+      <td>62.5833</td>
+      <td>58.5943</td>
+      <td>62.1283</td>
+      <td>6.6774</td>
+    </tr>
+  </tbody>
+</table></div>
+
+
+        <h2>F1_F2_F3</h2>
+
+        <img
+            src="assets/accuracy_f1_f2_f3.png"
+            alt="Accuracy results for F1_F2_F3"
+        >
+
+        <div class="table-wrap"><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>rank</th>
+      <th>model</th>
+      <th>feature_set</th>
+      <th>n_features</th>
+      <th>features</th>
+      <th>accuracy_oof_percent</th>
+      <th>balanced_accuracy_oof_percent</th>
+      <th>speaker_macro_balanced_accuracy_percent</th>
+      <th>macro_f1_oof_percent</th>
+      <th>fold_accuracy_mean_percent</th>
+      <th>fold_accuracy_sd_percent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>F1, F2, F3</td>
+      <td>72.7887</td>
+      <td>63.9407</td>
+      <td>63.0791</td>
+      <td>64.7887</td>
+      <td>72.7690</td>
+      <td>2.1486</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>F1, F2, F3</td>
+      <td>72.7815</td>
+      <td>60.5231</td>
+      <td>59.6937</td>
+      <td>60.0331</td>
+      <td>72.7669</td>
+      <td>2.1447</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>F1, F2, F3</td>
+      <td>67.7112</td>
+      <td>68.4782</td>
+      <td>68.3293</td>
+      <td>63.8025</td>
+      <td>67.6689</td>
+      <td>5.4922</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>F1, F2, F3</td>
+      <td>64.7392</td>
+      <td>65.8630</td>
+      <td>65.8148</td>
+      <td>61.1053</td>
+      <td>64.6471</td>
+      <td>6.9743</td>
+    </tr>
+  </tbody>
+</table></div>
+        
+        <h2>F1_F2</h2>
+
+        <img
+            src="assets/accuracy_f1_f2.png"
+            alt="Accuracy results for F1_F2"
+        >
+
+        <div class="table-wrap"><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>rank</th>
+      <th>model</th>
+      <th>feature_set</th>
+      <th>n_features</th>
+      <th>features</th>
+      <th>accuracy_oof_percent</th>
+      <th>balanced_accuracy_oof_percent</th>
+      <th>speaker_macro_balanced_accuracy_percent</th>
+      <th>macro_f1_oof_percent</th>
+      <th>fold_accuracy_mean_percent</th>
+      <th>fold_accuracy_sd_percent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>4</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>F1, F2</td>
+      <td>72.2663</td>
+      <td>60.1076</td>
+      <td>59.3045</td>
+      <td>59.5908</td>
+      <td>72.2312</td>
+      <td>2.1432</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>F1, F2</td>
+      <td>69.9285</td>
+      <td>61.3359</td>
+      <td>60.5133</td>
+      <td>62.0114</td>
+      <td>69.8959</td>
+      <td>2.2827</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>F1, F2</td>
+      <td>67.5092</td>
+      <td>68.2423</td>
+      <td>68.2299</td>
+      <td>63.6113</td>
+      <td>67.4407</td>
+      <td>6.1518</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>F1, F2</td>
+      <td>66.8836</td>
+      <td>68.1062</td>
+      <td>68.1142</td>
+      <td>63.1580</td>
+      <td>66.8114</td>
+      <td>6.5576</td>
+    </tr>
+  </tbody>
+</table></div>
+        
+        <h2>ALL_SAFE_NUMERIC</h2>
+
+        <img
+            src="assets/accuracy_all_safe_numeric.png"
+            alt="Accuracy results for ALL_SAFE_NUMERIC"
+        >
+
+        <div class="table-wrap"><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>rank</th>
+      <th>model</th>
+      <th>feature_set</th>
+      <th>n_features</th>
+      <th>features</th>
+      <th>accuracy_oof_percent</th>
+      <th>balanced_accuracy_oof_percent</th>
+      <th>speaker_macro_balanced_accuracy_percent</th>
+      <th>macro_f1_oof_percent</th>
+      <th>fold_accuracy_mean_percent</th>
+      <th>fold_accuracy_sd_percent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>6</td>
+      <td>F1, F2, F3, B1_Hz, B2_Hz, B3_Hz</td>
+      <td>74.3847</td>
+      <td>65.5480</td>
+      <td>64.2989</td>
+      <td>66.6377</td>
+      <td>74.3691</td>
+      <td>2.0624</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>6</td>
+      <td>F1, F2, F3, B1_Hz, B2_Hz, B3_Hz</td>
+      <td>72.2627</td>
+      <td>61.1844</td>
+      <td>60.0403</td>
+      <td>61.3851</td>
+      <td>72.2560</td>
+      <td>2.7427</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>6</td>
+      <td>F1, F2, F3, B1_Hz, B2_Hz, B3_Hz</td>
+      <td>67.4161</td>
+      <td>68.1987</td>
+      <td>67.9340</td>
+      <td>63.5768</td>
+      <td>67.3606</td>
+      <td>5.2828</td>
+    </tr>
+    <tr>
+      <td>12</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>6</td>
+      <td>F1, F2, F3, B1_Hz, B2_Hz, B3_Hz</td>
+      <td>62.2232</td>
+      <td>62.9922</td>
+      <td>62.5833</td>
+      <td>58.5943</td>
+      <td>62.1283</td>
+      <td>6.6774</td>
+    </tr>
+  </tbody>
+</table></div>
+        
+
+<h2>Per-vowel results</h2>
+
+<p>
+Precision, recall and F1 were calculated from the
+combined out-of-fold predictions of each configuration.
+</p>
+
+<div class="table-wrap"><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>config_id</th>
+      <th>model</th>
+      <th>feature_set</th>
+      <th>vowel</th>
+      <th>precision</th>
+      <th>recall</th>
+      <th>f1</th>
+      <th>support</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>a</td>
+      <td>0.7818</td>
+      <td>0.7447</td>
+      <td>0.7628</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>e</td>
+      <td>0.7312</td>
+      <td>0.6821</td>
+      <td>0.7058</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>i</td>
+      <td>0.6940</td>
+      <td>0.7995</td>
+      <td>0.7430</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>o</td>
+      <td>0.7102</td>
+      <td>0.5056</td>
+      <td>0.5907</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>u</td>
+      <td>0.2694</td>
+      <td>0.6920</td>
+      <td>0.3878</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>a</td>
+      <td>0.7666</td>
+      <td>0.7762</td>
+      <td>0.7714</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>e</td>
+      <td>0.7091</td>
+      <td>0.7465</td>
+      <td>0.7273</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>i</td>
+      <td>0.7580</td>
+      <td>0.7069</td>
+      <td>0.7315</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>o</td>
+      <td>0.7141</td>
+      <td>0.7710</td>
+      <td>0.7415</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>u</td>
+      <td>0.4202</td>
+      <td>0.1964</td>
+      <td>0.2677</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2_F3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>a</td>
+      <td>0.7780</td>
+      <td>0.7586</td>
+      <td>0.7682</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2_F3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>e</td>
+      <td>0.6806</td>
+      <td>0.8064</td>
+      <td>0.7382</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2_F3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>i</td>
+      <td>0.8016</td>
+      <td>0.6215</td>
+      <td>0.7002</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2_F3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>o</td>
+      <td>0.7002</td>
+      <td>0.8184</td>
+      <td>0.7547</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2_F3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>u</td>
+      <td>0.4290</td>
+      <td>0.0212</td>
+      <td>0.0404</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>a</td>
+      <td>0.7697</td>
+      <td>0.7274</td>
+      <td>0.7479</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>e</td>
+      <td>0.6951</td>
+      <td>0.6362</td>
+      <td>0.6643</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>i</td>
+      <td>0.6620</td>
+      <td>0.7432</td>
+      <td>0.7002</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>o</td>
+      <td>0.6627</td>
+      <td>0.4900</td>
+      <td>0.5634</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>u</td>
+      <td>0.2607</td>
+      <td>0.6965</td>
+      <td>0.3794</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>a</td>
+      <td>0.7811</td>
+      <td>0.7386</td>
+      <td>0.7592</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>e</td>
+      <td>0.7277</td>
+      <td>0.6829</td>
+      <td>0.7046</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>i</td>
+      <td>0.6907</td>
+      <td>0.7910</td>
+      <td>0.7374</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>o</td>
+      <td>0.7121</td>
+      <td>0.5097</td>
+      <td>0.5942</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>u</td>
+      <td>0.2672</td>
+      <td>0.6899</td>
+      <td>0.3852</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>a</td>
+      <td>0.7373</td>
+      <td>0.7454</td>
+      <td>0.7413</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>e</td>
+      <td>0.6883</td>
+      <td>0.7271</td>
+      <td>0.7072</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>i</td>
+      <td>0.7311</td>
+      <td>0.6764</td>
+      <td>0.7027</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>o</td>
+      <td>0.6858</td>
+      <td>0.7327</td>
+      <td>0.7085</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>u</td>
+      <td>0.3445</td>
+      <td>0.1852</td>
+      <td>0.2409</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>a</td>
+      <td>0.7788</td>
+      <td>0.7384</td>
+      <td>0.7581</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>e</td>
+      <td>0.6775</td>
+      <td>0.8078</td>
+      <td>0.7369</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>i</td>
+      <td>0.8010</td>
+      <td>0.6133</td>
+      <td>0.6947</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>o</td>
+      <td>0.6879</td>
+      <td>0.8251</td>
+      <td>0.7503</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>u</td>
+      <td>0.4413</td>
+      <td>0.0207</td>
+      <td>0.0396</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>a</td>
+      <td>0.7722</td>
+      <td>0.7383</td>
+      <td>0.7548</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>e</td>
+      <td>0.7338</td>
+      <td>0.6569</td>
+      <td>0.6932</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>i</td>
+      <td>0.6833</td>
+      <td>0.8088</td>
+      <td>0.7408</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>o</td>
+      <td>0.6911</td>
+      <td>0.4980</td>
+      <td>0.5789</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>u</td>
+      <td>0.2700</td>
+      <td>0.7034</td>
+      <td>0.3902</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>a</td>
+      <td>0.7776</td>
+      <td>0.7376</td>
+      <td>0.7571</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>e</td>
+      <td>0.7336</td>
+      <td>0.6772</td>
+      <td>0.7043</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>i</td>
+      <td>0.6930</td>
+      <td>0.8004</td>
+      <td>0.7428</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>o</td>
+      <td>0.6937</td>
+      <td>0.5075</td>
+      <td>0.5861</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>u</td>
+      <td>0.2708</td>
+      <td>0.6872</td>
+      <td>0.3885</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>a</td>
+      <td>0.7823</td>
+      <td>0.7952</td>
+      <td>0.7887</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>e</td>
+      <td>0.7245</td>
+      <td>0.7581</td>
+      <td>0.7410</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>i</td>
+      <td>0.7706</td>
+      <td>0.7166</td>
+      <td>0.7426</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>o</td>
+      <td>0.7247</td>
+      <td>0.7917</td>
+      <td>0.7567</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>u</td>
+      <td>0.5077</td>
+      <td>0.2158</td>
+      <td>0.3029</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__ALL_SAFE_NUMERIC</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>a</td>
+      <td>0.7690</td>
+      <td>0.7578</td>
+      <td>0.7633</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__ALL_SAFE_NUMERIC</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>e</td>
+      <td>0.6922</td>
+      <td>0.7732</td>
+      <td>0.7304</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__ALL_SAFE_NUMERIC</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>i</td>
+      <td>0.7806</td>
+      <td>0.6489</td>
+      <td>0.7087</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__ALL_SAFE_NUMERIC</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>o</td>
+      <td>0.6970</td>
+      <td>0.8054</td>
+      <td>0.7473</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>QDA__ALL_SAFE_NUMERIC</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>u</td>
+      <td>0.3110</td>
+      <td>0.0740</td>
+      <td>0.1195</td>
+      <td>6705.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__ALL_SAFE_NUMERIC</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>a</td>
+      <td>0.7390</td>
+      <td>0.6982</td>
+      <td>0.7180</td>
+      <td>39669.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__ALL_SAFE_NUMERIC</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>e</td>
+      <td>0.6772</td>
+      <td>0.5967</td>
+      <td>0.6344</td>
+      <td>36659.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__ALL_SAFE_NUMERIC</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>i</td>
+      <td>0.6470</td>
+      <td>0.7443</td>
+      <td>0.6923</td>
+      <td>22341.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__ALL_SAFE_NUMERIC</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>o</td>
+      <td>0.6328</td>
+      <td>0.4749</td>
+      <td>0.5426</td>
+      <td>33219.0000</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__ALL_SAFE_NUMERIC</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>u</td>
+      <td>0.2343</td>
+      <td>0.6355</td>
+      <td>0.3424</td>
+      <td>6705.0000</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>Fold-level results</h2>
+
+<p>
+The same speaker-disjoint five folds were used for
+all twelve configurations.
+</p>
+
+<div class="table-wrap"><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>config_id</th>
+      <th>model</th>
+      <th>feature_set</th>
+      <th>fold</th>
+      <th>train_tokens</th>
+      <th>test_tokens</th>
+      <th>train_speakers</th>
+      <th>test_speakers</th>
+      <th>speaker_overlap</th>
+      <th>accuracy</th>
+      <th>balanced_accuracy</th>
+      <th>macro_f1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.5921</td>
+      <td>0.6484</td>
+      <td>0.5705</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6554</td>
+      <td>0.6641</td>
+      <td>0.6153</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7077</td>
+      <td>0.6862</td>
+      <td>0.6665</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.6956</td>
+      <td>0.6974</td>
+      <td>0.6544</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7327</td>
+      <td>0.7164</td>
+      <td>0.6851</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.7146</td>
+      <td>0.6707</td>
+      <td>0.6635</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7209</td>
+      <td>0.6268</td>
+      <td>0.6355</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7134</td>
+      <td>0.6071</td>
+      <td>0.6173</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.7242</td>
+      <td>0.6292</td>
+      <td>0.6366</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7653</td>
+      <td>0.6527</td>
+      <td>0.6653</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2_F3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.7264</td>
+      <td>0.6296</td>
+      <td>0.6158</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2_F3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7117</td>
+      <td>0.5904</td>
+      <td>0.5863</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2_F3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7135</td>
+      <td>0.5822</td>
+      <td>0.5824</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2_F3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.7223</td>
+      <td>0.5983</td>
+      <td>0.5915</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2_F3</td>
+      <td>QDA</td>
+      <td>F1_F2_F3</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7644</td>
+      <td>0.6208</td>
+      <td>0.6153</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.5465</td>
+      <td>0.6119</td>
+      <td>0.5280</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6326</td>
+      <td>0.6434</td>
+      <td>0.5920</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6953</td>
+      <td>0.6708</td>
+      <td>0.6541</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.6301</td>
+      <td>0.6451</td>
+      <td>0.5987</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7278</td>
+      <td>0.7075</td>
+      <td>0.6807</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.5790</td>
+      <td>0.6381</td>
+      <td>0.5580</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6632</td>
+      <td>0.6705</td>
+      <td>0.6208</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7144</td>
+      <td>0.6907</td>
+      <td>0.6733</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.6755</td>
+      <td>0.6813</td>
+      <td>0.6366</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7400</td>
+      <td>0.7186</td>
+      <td>0.6920</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.6725</td>
+      <td>0.6295</td>
+      <td>0.6192</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6995</td>
+      <td>0.6084</td>
+      <td>0.6134</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6981</td>
+      <td>0.5933</td>
+      <td>0.6060</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.6898</td>
+      <td>0.6042</td>
+      <td>0.6115</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2</td>
+      <td>Random forest</td>
+      <td>F1_F2</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7350</td>
+      <td>0.6216</td>
+      <td>0.6325</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.7126</td>
+      <td>0.6212</td>
+      <td>0.6069</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7229</td>
+      <td>0.5986</td>
+      <td>0.5947</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7173</td>
+      <td>0.5838</td>
+      <td>0.5834</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.7010</td>
+      <td>0.5804</td>
+      <td>0.5708</td>
+    </tr>
+    <tr>
+      <td>QDA__F1_F2</td>
+      <td>QDA</td>
+      <td>F1_F2</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7578</td>
+      <td>0.6148</td>
+      <td>0.6090</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.5674</td>
+      <td>0.6297</td>
+      <td>0.5468</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6554</td>
+      <td>0.6661</td>
+      <td>0.6137</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7042</td>
+      <td>0.6865</td>
+      <td>0.6659</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.6706</td>
+      <td>0.6838</td>
+      <td>0.6355</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7429</td>
+      <td>0.7263</td>
+      <td>0.6959</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.5934</td>
+      <td>0.6506</td>
+      <td>0.5724</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6594</td>
+      <td>0.6663</td>
+      <td>0.6195</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7042</td>
+      <td>0.6747</td>
+      <td>0.6628</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.6777</td>
+      <td>0.6903</td>
+      <td>0.6388</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7334</td>
+      <td>0.7143</td>
+      <td>0.6857</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.7322</td>
+      <td>0.6930</td>
+      <td>0.6860</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7371</td>
+      <td>0.6477</td>
+      <td>0.6597</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7272</td>
+      <td>0.6196</td>
+      <td>0.6310</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.7428</td>
+      <td>0.6478</td>
+      <td>0.6598</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7791</td>
+      <td>0.6582</td>
+      <td>0.6688</td>
+    </tr>
+    <tr>
+      <td>QDA__ALL_SAFE_NUMERIC</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.7206</td>
+      <td>0.6399</td>
+      <td>0.6335</td>
+    </tr>
+    <tr>
+      <td>QDA__ALL_SAFE_NUMERIC</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7045</td>
+      <td>0.5970</td>
+      <td>0.5980</td>
+    </tr>
+    <tr>
+      <td>QDA__ALL_SAFE_NUMERIC</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6946</td>
+      <td>0.5683</td>
+      <td>0.5730</td>
+    </tr>
+    <tr>
+      <td>QDA__ALL_SAFE_NUMERIC</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.7270</td>
+      <td>0.6165</td>
+      <td>0.6199</td>
+    </tr>
+    <tr>
+      <td>QDA__ALL_SAFE_NUMERIC</td>
+      <td>QDA</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7659</td>
+      <td>0.6312</td>
+      <td>0.6311</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__ALL_SAFE_NUMERIC</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>1</td>
+      <td>111294</td>
+      <td>27299</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.5353</td>
+      <td>0.6006</td>
+      <td>0.5181</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__ALL_SAFE_NUMERIC</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>2</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6027</td>
+      <td>0.6073</td>
+      <td>0.5639</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__ALL_SAFE_NUMERIC</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>3</td>
+      <td>110505</td>
+      <td>28088</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.6650</td>
+      <td>0.6169</td>
+      <td>0.6124</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__ALL_SAFE_NUMERIC</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>4</td>
+      <td>111885</td>
+      <td>26708</td>
+      <td>35</td>
+      <td>8</td>
+      <td>0</td>
+      <td>0.5954</td>
+      <td>0.6216</td>
+      <td>0.5662</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__ALL_SAFE_NUMERIC</td>
+      <td>Nearest centroid</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5</td>
+      <td>110183</td>
+      <td>28410</td>
+      <td>34</td>
+      <td>9</td>
+      <td>0</td>
+      <td>0.7080</td>
+      <td>0.6850</td>
+      <td>0.6582</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>Speaker-to-fold assignment</h2>
+
+<div class="table-wrap"><table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>speaker</th>
+      <th>test_fold</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0f786745-Audio_SP20</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>2988c6fc-Audio_SP13</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>2e25304d-Audio_SP12</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>42d56bbf-Audio_SP23</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>713a2f9b-Audio_SP16</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>9a0c18cb-Audio_SP14</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>a1a056ce-Audio_SP11</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>d4c363bf-Audio_SP13</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>0af9ac47-Audio_SP14</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>34ad326e-Audio_SP7</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>375a28cd-Audio_SP16</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>51a17262-Audio_SP18</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>5a932187-audio_SP16</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>63239054-Audio_SP15</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>85c7895f-Audio_SP16</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>919b9bc1-Audio_SP14</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>e90f8e4d-Audio_SP22</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>12c532f8-Audio_SP15</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>5278b5b9-Audio_SP15</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>5819ce7a-Audio_SP11</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>7c3c98d2-Audio_SP13</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>7dec1dd7-Audio_SP13</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>c3533b36-Audio_SP16</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>cafd9c21-Audio_SP27</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>dbeec025-Audio_SP13</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>f061152e-Audio_SP12</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td>0e6115f2-Audio_SP19</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>30a90cb2-Audio_SP21</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>3361ee02-Audio_SP10</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>501e6487-Audio_SP19</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>514fc6b6-Audio_SP19</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>7a414497-Audio_SP15</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>adad0062-Audio_SP17</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>fcd45f4d-Audio_SP21</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>061ea7d0-Audio_SP16</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>181d5ce9-Audio_SP21</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>1c403477-Audio_SP13</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>1d46eb6e-Audio_SP18</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>49ae7020-Audio_SP17</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>5586979c-Audio_SP18</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>7aee4437-Audio_SP12</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>7e277fda-Audio_SP28</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>a452055c-Audio_SP11</td>
+      <td>5</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>Confusion matrices</h2>
+
+<p>
+Rows correspond to true vowels and columns correspond
+to predicted vowels. Each row is normalized to 100%.
+</p>
+
+
+        <h3>
+            Random forest — ALL_SAFE_NUMERIC
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/random_forest_all_safe_numeric.png"
+            alt="Confusion matrix for Random forest__ALL_SAFE_NUMERIC"
+        >
+        
+        <h3>
+            Random forest — F1_F2_F3
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/random_forest_f1_f2_f3.png"
+            alt="Confusion matrix for Random forest__F1_F2_F3"
+        >
+        
+        <h3>
+            QDA — F1_F2_F3
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/qda_f1_f2_f3.png"
+            alt="Confusion matrix for QDA__F1_F2_F3"
+        >
+        
+        <h3>
+            QDA — F1_F2
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/qda_f1_f2.png"
+            alt="Confusion matrix for QDA__F1_F2"
+        >
+        
+        <h3>
+            QDA — ALL_SAFE_NUMERIC
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/qda_all_safe_numeric.png"
+            alt="Confusion matrix for QDA__ALL_SAFE_NUMERIC"
+        >
+        
+        <h3>
+            Random forest — F1_F2
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/random_forest_f1_f2.png"
+            alt="Confusion matrix for Random forest__F1_F2"
+        >
+        
+        <h3>
+            Logistic regression — F1_F2_F3
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/logistic_regression_f1_f2_f3.png"
+            alt="Confusion matrix for Logistic regression__F1_F2_F3"
+        >
+        
+        <h3>
+            Logistic regression — F1_F2
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/logistic_regression_f1_f2.png"
+            alt="Confusion matrix for Logistic regression__F1_F2"
+        >
+        
+        <h3>
+            Logistic regression — ALL_SAFE_NUMERIC
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/logistic_regression_all_safe_numeric.png"
+            alt="Confusion matrix for Logistic regression__ALL_SAFE_NUMERIC"
+        >
+        
+        <h3>
+            Nearest centroid — F1_F2
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/nearest_centroid_f1_f2.png"
+            alt="Confusion matrix for Nearest centroid__F1_F2"
+        >
+        
+        <h3>
+            Nearest centroid — F1_F2_F3
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/nearest_centroid_f1_f2_f3.png"
+            alt="Confusion matrix for Nearest centroid__F1_F2_F3"
+        >
+        
+        <h3>
+            Nearest centroid — ALL_SAFE_NUMERIC
+        </h3>
+
+        <img
+            src="assets/confusion_matrices/nearest_centroid_all_safe_numeric.png"
+            alt="Confusion matrix for Nearest centroid__ALL_SAFE_NUMERIC"
+        >
+        
+
+<h2>Saved files</h2>
+
+<ul>
+<li><code>model_summary_12way.csv</code></li>
+<li><code>fold_results_12way.csv</code></li>
+<li><code>per_vowel_results_12way.csv</code></li>
+<li><code>confusion_matrices_12way.csv</code></li>
+<li><code>speaker_fold_assignment.csv</code></li>
+</ul>
+
+</body>
+</html>

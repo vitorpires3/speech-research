@@ -1,0 +1,45 @@
+================================================================================
+1c403477-Audio_SP13.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+1d46eb6e-Audio_SP18.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+2988c6fc-Audio_SP13.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+42d56bbf-Audio_SP23.v0.TextGrid
+SKIPPED: previously caused out-of-memory during new-fave processing.
+================================================================================
+49ae7020-Audio_SP17.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+501e6487-Audio_SP19.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+5278b5b9-Audio_SP15.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+5586979c-Audio_SP18.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+5819ce7a-Audio_SP11.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+7aee4437-Audio_SP12.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+7c3c98d2-Audio_SP13.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+85c7895f-Audio_SP16.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+a452055c-Audio_SP11.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+d4c363bf-Audio_SP13.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.
+================================================================================
+e90f8e4d-Audio_SP22.v0.TextGrid
+No invalid or overlapping intervals were detected by this validator.

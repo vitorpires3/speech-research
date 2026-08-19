@@ -1,0 +1,2736 @@
+<!doctype html>
+<html lang='en'>
+<head><meta charset='utf-8'><title>Speaker-independent vowel classification</title><style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:2rem;line-height:1.45;color:#222;max-width:1450px}
+    h1{margin-bottom:.3rem} h2{margin-top:2.6rem;border-bottom:2px solid #ddd;padding-bottom:.3rem}
+    h3{margin-top:1.8rem}.note{background:#f5f5f5;border-left:4px solid #777;padding:1rem;margin:1rem 0}
+    .good{background:#eef8ee;border-left:4px solid #4c8;padding:1rem;margin:1rem 0}
+    .table-wrap{overflow-x:auto;border:1px solid #ddd;margin:1rem 0 2rem}
+    table{border-collapse:collapse;width:100%;font-size:.82rem}th,td{border:1px solid #ddd;padding:.42rem;text-align:right;white-space:nowrap}
+    th{background:#eee}td:first-child,th:first-child{text-align:left}img{max-width:100%;border:1px solid #ddd;margin:1rem 0 2rem}
+    code{background:#f2f2f2;padding:.1rem .25rem}.small{font-size:.9rem;color:#444}
+    </style></head>
+<body>
+<h1>Speaker-independent five-class vowel classification</h1>
+<p class='small'>Raw acoustic features; speaker-disjoint, vowel-stratified 5-fold evaluation.</p>
+
+<div class='good'>
+<b>Automatic result:</b> The best tested configuration was
+<b>Logistic regression</b> with <b>ALL_SAFE_NUMERIC</b>.
+Its speaker-macro balanced accuracy was <b>0.685</b>
+(95% speaker-bootstrap CI 0.667–0.702).
+Its out-of-fold token balanced accuracy was <b>0.688</b>,
+macro-F1 was <b>0.635</b>, and ordinary accuracy was
+<b>0.671</b>.
+</div>
+
+<div class='note'>
+<b>Evaluation design:</b> approximately 80% of speakers train the model and 20% test it in each fold.
+A speaker never occurs in both sets. The fold search attempts to place approximately 20% of
+<b>each vowel</b> in every test fold. Because whole speakers must stay together, exact 20.00% splits
+are not always mathematically possible. Every speaker is tested once across the five folds.
+</div>
+
+<h2>Dataset</h2>
+<p><b>138,593</b> retained vowel tokens from <b>43</b> speaker/audio files.</p>
+<img src='assets/vowel_counts.png' alt='Vowel counts'>
+<div class='table-wrap'><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>vowel</th>
+      <th>tokens</th>
+      <th>percent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>a</td>
+      <td>39669.0</td>
+      <td>28.6227</td>
+    </tr>
+    <tr>
+      <td>e</td>
+      <td>36659.0</td>
+      <td>26.4508</td>
+    </tr>
+    <tr>
+      <td>i</td>
+      <td>22341.0</td>
+      <td>16.1199</td>
+    </tr>
+    <tr>
+      <td>o</td>
+      <td>33219.0</td>
+      <td>23.9687</td>
+    </tr>
+    <tr>
+      <td>u</td>
+      <td>6705.0</td>
+      <td>4.8379</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h3>Input inventory</h3>
+<div class='table-wrap'><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>file</th>
+      <th>speaker</th>
+      <th>status</th>
+      <th>reason</th>
+      <th>raw_rows</th>
+      <th>retained_rows</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>061ea7d0-Audio_SP16.csv</td>
+      <td>061ea7d0-Audio_SP16</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3042.0</td>
+      <td>2903.0</td>
+    </tr>
+    <tr>
+      <td>0af9ac47-Audio_SP14.csv</td>
+      <td>0af9ac47-Audio_SP14</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3609.0</td>
+      <td>3466.0</td>
+    </tr>
+    <tr>
+      <td>0e6115f2-Audio_SP19.csv</td>
+      <td>0e6115f2-Audio_SP19</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3653.0</td>
+      <td>3495.0</td>
+    </tr>
+    <tr>
+      <td>0f786745-Audio_SP20.csv</td>
+      <td>0f786745-Audio_SP20</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3821.0</td>
+      <td>3677.0</td>
+    </tr>
+    <tr>
+      <td>12c532f8-Audio_SP15.csv</td>
+      <td>12c532f8-Audio_SP15</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3409.0</td>
+      <td>3342.0</td>
+    </tr>
+    <tr>
+      <td>181d5ce9-Audio_SP21.csv</td>
+      <td>181d5ce9-Audio_SP21</td>
+      <td>loaded</td>
+      <td></td>
+      <td>1757.0</td>
+      <td>1729.0</td>
+    </tr>
+    <tr>
+      <td>1c403477-Audio_SP13.csv</td>
+      <td>1c403477-Audio_SP13</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3483.0</td>
+      <td>3321.0</td>
+    </tr>
+    <tr>
+      <td>1d46eb6e-Audio_SP18.csv</td>
+      <td>1d46eb6e-Audio_SP18</td>
+      <td>loaded</td>
+      <td></td>
+      <td>5153.0</td>
+      <td>4972.0</td>
+    </tr>
+    <tr>
+      <td>2988c6fc-Audio_SP13.csv</td>
+      <td>2988c6fc-Audio_SP13</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2517.0</td>
+      <td>2406.0</td>
+    </tr>
+    <tr>
+      <td>2e25304d-Audio_SP12.csv</td>
+      <td>2e25304d-Audio_SP12</td>
+      <td>loaded</td>
+      <td></td>
+      <td>1265.0</td>
+      <td>1234.0</td>
+    </tr>
+    <tr>
+      <td>30a90cb2-Audio_SP21.csv</td>
+      <td>30a90cb2-Audio_SP21</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3371.0</td>
+      <td>3151.0</td>
+    </tr>
+    <tr>
+      <td>3361ee02-Audio_SP10.csv</td>
+      <td>3361ee02-Audio_SP10</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2307.0</td>
+      <td>2233.0</td>
+    </tr>
+    <tr>
+      <td>34ad326e-Audio_SP7.csv</td>
+      <td>34ad326e-Audio_SP7</td>
+      <td>loaded</td>
+      <td></td>
+      <td>1514.0</td>
+      <td>1458.0</td>
+    </tr>
+    <tr>
+      <td>375a28cd-Audio_SP16.csv</td>
+      <td>375a28cd-Audio_SP16</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3560.0</td>
+      <td>3445.0</td>
+    </tr>
+    <tr>
+      <td>42d56bbf-Audio_SP23.csv</td>
+      <td>42d56bbf-Audio_SP23</td>
+      <td>loaded</td>
+      <td></td>
+      <td>10244.0</td>
+      <td>9770.0</td>
+    </tr>
+    <tr>
+      <td>49ae7020-Audio_SP17.csv</td>
+      <td>49ae7020-Audio_SP17</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2472.0</td>
+      <td>2377.0</td>
+    </tr>
+    <tr>
+      <td>501e6487-Audio_SP19.csv</td>
+      <td>501e6487-Audio_SP19</td>
+      <td>loaded</td>
+      <td></td>
+      <td>5439.0</td>
+      <td>5259.0</td>
+    </tr>
+    <tr>
+      <td>514fc6b6-Audio_SP19.csv</td>
+      <td>514fc6b6-Audio_SP19</td>
+      <td>loaded</td>
+      <td></td>
+      <td>4355.0</td>
+      <td>4227.0</td>
+    </tr>
+    <tr>
+      <td>51a17262-Audio_SP18.csv</td>
+      <td>51a17262-Audio_SP18</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2817.0</td>
+      <td>2738.0</td>
+    </tr>
+    <tr>
+      <td>5278b5b9-Audio_SP15.csv</td>
+      <td>5278b5b9-Audio_SP15</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2037.0</td>
+      <td>1916.0</td>
+    </tr>
+    <tr>
+      <td>5586979c-Audio_SP18.csv</td>
+      <td>5586979c-Audio_SP18</td>
+      <td>loaded</td>
+      <td></td>
+      <td>4385.0</td>
+      <td>4244.0</td>
+    </tr>
+    <tr>
+      <td>5819ce7a-Audio_SP11.csv</td>
+      <td>5819ce7a-Audio_SP11</td>
+      <td>loaded</td>
+      <td></td>
+      <td>4050.0</td>
+      <td>3848.0</td>
+    </tr>
+    <tr>
+      <td>5a932187-audio_SP16.csv</td>
+      <td>5a932187-audio_SP16</td>
+      <td>loaded</td>
+      <td></td>
+      <td>4126.0</td>
+      <td>3930.0</td>
+    </tr>
+    <tr>
+      <td>63239054-Audio_SP15.csv</td>
+      <td>63239054-Audio_SP15</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2771.0</td>
+      <td>2628.0</td>
+    </tr>
+    <tr>
+      <td>713a2f9b-Audio_SP16.csv</td>
+      <td>713a2f9b-Audio_SP16</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3358.0</td>
+      <td>3172.0</td>
+    </tr>
+    <tr>
+      <td>7a414497-Audio_SP15.csv</td>
+      <td>7a414497-Audio_SP15</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2273.0</td>
+      <td>2137.0</td>
+    </tr>
+    <tr>
+      <td>7aee4437-Audio_SP12.csv</td>
+      <td>7aee4437-Audio_SP12</td>
+      <td>loaded</td>
+      <td></td>
+      <td>1711.0</td>
+      <td>1642.0</td>
+    </tr>
+    <tr>
+      <td>7c3c98d2-Audio_SP13.csv</td>
+      <td>7c3c98d2-Audio_SP13</td>
+      <td>loaded</td>
+      <td></td>
+      <td>4339.0</td>
+      <td>4155.0</td>
+    </tr>
+    <tr>
+      <td>7dec1dd7-Audio_SP13.csv</td>
+      <td>7dec1dd7-Audio_SP13</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2399.0</td>
+      <td>2334.0</td>
+    </tr>
+    <tr>
+      <td>7e277fda-Audio_SP28.csv</td>
+      <td>7e277fda-Audio_SP28</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3539.0</td>
+      <td>3383.0</td>
+    </tr>
+    <tr>
+      <td>85c7895f-Audio_SP16.csv</td>
+      <td>85c7895f-Audio_SP16</td>
+      <td>loaded</td>
+      <td></td>
+      <td>5987.0</td>
+      <td>5726.0</td>
+    </tr>
+    <tr>
+      <td>919b9bc1-Audio_SP14.csv</td>
+      <td>919b9bc1-Audio_SP14</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2220.0</td>
+      <td>2133.0</td>
+    </tr>
+    <tr>
+      <td>9a0c18cb-Audio_SP14.csv</td>
+      <td>9a0c18cb-Audio_SP14</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2121.0</td>
+      <td>2033.0</td>
+    </tr>
+    <tr>
+      <td>a1a056ce-Audio_SP11.csv</td>
+      <td>a1a056ce-Audio_SP11</td>
+      <td>loaded</td>
+      <td></td>
+      <td>1705.0</td>
+      <td>1617.0</td>
+    </tr>
+    <tr>
+      <td>a452055c-Audio_SP11.csv</td>
+      <td>a452055c-Audio_SP11</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3994.0</td>
+      <td>3839.0</td>
+    </tr>
+    <tr>
+      <td>adad0062-Audio_SP17.csv</td>
+      <td>adad0062-Audio_SP17</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3893.0</td>
+      <td>3705.0</td>
+    </tr>
+    <tr>
+      <td>c3533b36-Audio_SP16.csv</td>
+      <td>c3533b36-Audio_SP16</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2024.0</td>
+      <td>1959.0</td>
+    </tr>
+    <tr>
+      <td>cafd9c21-Audio_SP27.csv</td>
+      <td>cafd9c21-Audio_SP27</td>
+      <td>loaded</td>
+      <td></td>
+      <td>5198.0</td>
+      <td>4907.0</td>
+    </tr>
+    <tr>
+      <td>d4c363bf-Audio_SP13.csv</td>
+      <td>d4c363bf-Audio_SP13</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3537.0</td>
+      <td>3390.0</td>
+    </tr>
+    <tr>
+      <td>dbeec025-Audio_SP13.csv</td>
+      <td>dbeec025-Audio_SP13</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2814.0</td>
+      <td>2727.0</td>
+    </tr>
+    <tr>
+      <td>e90f8e4d-Audio_SP22.csv</td>
+      <td>e90f8e4d-Audio_SP22</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2622.0</td>
+      <td>2564.0</td>
+    </tr>
+    <tr>
+      <td>f061152e-Audio_SP12.csv</td>
+      <td>f061152e-Audio_SP12</td>
+      <td>loaded</td>
+      <td></td>
+      <td>3019.0</td>
+      <td>2900.0</td>
+    </tr>
+    <tr>
+      <td>fcd45f4d-Audio_SP21.csv</td>
+      <td>fcd45f4d-Audio_SP21</td>
+      <td>loaded</td>
+      <td></td>
+      <td>2573.0</td>
+      <td>2501.0</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>Features</h2>
+<p>All processing choices are explicit below. Identifier, label, file, recording-position and known
+processing-setting columns were excluded from the broad feature set. Original B1/B2/B3 columns
+were replaced by Hz-scale versions when they looked logarithmic.</p>
+<div class='table-wrap'><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_set</th>
+      <th>n_features</th>
+      <th>features</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>F1_F2</td>
+      <td>2.0</td>
+      <td>F1, F2</td>
+    </tr>
+    <tr>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>F1, F2, F3</td>
+    </tr>
+    <tr>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>12.0</td>
+      <td>F1, F2, F3, B1_Hz, B2_Hz, B3_Hz, chunk_offset, chunk_part, dur, f0, intensity, optimized</td>
+    </tr>
+  </tbody>
+</table></div>
+<h3>Feature-column audit</h3>
+<div class='table-wrap'><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>column</th>
+      <th>selected_for_all_safe_numeric</th>
+      <th>reason</th>
+      <th>numeric_convertible_rate</th>
+      <th>nonmissing_numeric</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>F1</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>F2</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>F3</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>B1</td>
+      <td>False</td>
+      <td>replaced by converted Hz column</td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>B2</td>
+      <td>False</td>
+      <td>replaced by converted Hz column</td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>B3</td>
+      <td>False</td>
+      <td>replaced by converted Hz column</td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>max_formant</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>smooth_error</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>time</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>rel_time</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>prop_time</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>id</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>label</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>file_name</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>group</td>
+      <td>False</td>
+      <td>less than 90% numeric among non-missing values (0.0%)</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>speaker_num</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>point_heuristic</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>f0</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>137062.0</td>
+    </tr>
+    <tr>
+      <td>intensity</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>optimized</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>word</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>0.0001</td>
+      <td>13.0</td>
+    </tr>
+    <tr>
+      <td>stress</td>
+      <td>False</td>
+      <td>less than 90% numeric among non-missing values (0.0%)</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>dur</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>pre_word</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>0.0000</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <td>fol_word</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>0.0000</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>pre_seg</td>
+      <td>False</td>
+      <td>less than 90% numeric among non-missing values (0.0%)</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>fol_seg</td>
+      <td>False</td>
+      <td>less than 90% numeric among non-missing values (0.0%)</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>abs_pre_seg</td>
+      <td>False</td>
+      <td>less than 90% numeric among non-missing values (0.0%)</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>abs_fol_seg</td>
+      <td>False</td>
+      <td>less than 90% numeric among non-missing values (0.0%)</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>context</td>
+      <td>False</td>
+      <td>less than 90% numeric among non-missing values (0.0%)</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>B1_Hz</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>B2_Hz</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>B3_Hz</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>138593.0</td>
+    </tr>
+    <tr>
+      <td>chunk_part</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>9770.0</td>
+    </tr>
+    <tr>
+      <td>chunk_offset</td>
+      <td>True</td>
+      <td></td>
+      <td>1.0000</td>
+      <td>9770.0</td>
+    </tr>
+    <tr>
+      <td>chunk_time</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>1.0000</td>
+      <td>9770.0</td>
+    </tr>
+    <tr>
+      <td>original_chunk_id</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>chunk_file_name</td>
+      <td>False</td>
+      <td>identifier, label, recording-position, or processing-setting pattern</td>
+      <td>0.0000</td>
+      <td>0.0</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>Train/test split audit</h2>
+<p>Selected split seed: <code>20260727</code> after examining
+100 candidate grouped stratifications.</p>
+<img src='assets/split_balance.png' alt='Split balance'>
+<div class='table-wrap'><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>fold</th>
+      <th>train_speakers</th>
+      <th>test_speakers</th>
+      <th>speaker_overlap_count</th>
+      <th>minimum_test_percent</th>
+      <th>maximum_test_percent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+      <td>18.9997</td>
+      <td>23.2066</td>
+    </tr>
+    <tr>
+      <td>2.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+      <td>18.6577</td>
+      <td>21.7345</td>
+    </tr>
+    <tr>
+      <td>3.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+      <td>18.8367</td>
+      <td>22.0600</td>
+    </tr>
+    <tr>
+      <td>4.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+      <td>18.3540</td>
+      <td>20.1961</td>
+    </tr>
+    <tr>
+      <td>5.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+      <td>19.7315</td>
+      <td>21.1054</td>
+    </tr>
+  </tbody>
+</table></div>
+<div class='table-wrap'><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>fold</th>
+      <th>vowel</th>
+      <th>train_tokens</th>
+      <th>test_tokens</th>
+      <th>test_percent_of_vowel</th>
+      <th>train_speakers</th>
+      <th>test_speakers</th>
+      <th>speaker_overlap_count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1.0</td>
+      <td>a</td>
+      <td>32132.0</td>
+      <td>7537.0</td>
+      <td>18.9997</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>1.0</td>
+      <td>e</td>
+      <td>29555.0</td>
+      <td>7104.0</td>
+      <td>19.3786</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>1.0</td>
+      <td>i</td>
+      <td>17804.0</td>
+      <td>4537.0</td>
+      <td>20.3080</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>1.0</td>
+      <td>o</td>
+      <td>26654.0</td>
+      <td>6565.0</td>
+      <td>19.7628</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>1.0</td>
+      <td>u</td>
+      <td>5149.0</td>
+      <td>1556.0</td>
+      <td>23.2066</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>2.0</td>
+      <td>a</td>
+      <td>31874.0</td>
+      <td>7795.0</td>
+      <td>19.6501</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>2.0</td>
+      <td>e</td>
+      <td>29188.0</td>
+      <td>7471.0</td>
+      <td>20.3797</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>2.0</td>
+      <td>i</td>
+      <td>17990.0</td>
+      <td>4351.0</td>
+      <td>19.4754</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>2.0</td>
+      <td>o</td>
+      <td>25999.0</td>
+      <td>7220.0</td>
+      <td>21.7345</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>2.0</td>
+      <td>u</td>
+      <td>5454.0</td>
+      <td>1251.0</td>
+      <td>18.6577</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>3.0</td>
+      <td>a</td>
+      <td>30918.0</td>
+      <td>8751.0</td>
+      <td>22.0600</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>3.0</td>
+      <td>e</td>
+      <td>29291.0</td>
+      <td>7368.0</td>
+      <td>20.0987</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>3.0</td>
+      <td>i</td>
+      <td>17961.0</td>
+      <td>4380.0</td>
+      <td>19.6052</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>3.0</td>
+      <td>o</td>
+      <td>26893.0</td>
+      <td>6326.0</td>
+      <td>19.0433</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>3.0</td>
+      <td>u</td>
+      <td>5442.0</td>
+      <td>1263.0</td>
+      <td>18.8367</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>4.0</td>
+      <td>a</td>
+      <td>32040.0</td>
+      <td>7629.0</td>
+      <td>19.2316</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>4.0</td>
+      <td>e</td>
+      <td>29501.0</td>
+      <td>7158.0</td>
+      <td>19.5259</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>4.0</td>
+      <td>i</td>
+      <td>17829.0</td>
+      <td>4512.0</td>
+      <td>20.1961</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>4.0</td>
+      <td>o</td>
+      <td>27122.0</td>
+      <td>6097.0</td>
+      <td>18.3540</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>4.0</td>
+      <td>u</td>
+      <td>5393.0</td>
+      <td>1312.0</td>
+      <td>19.5675</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>5.0</td>
+      <td>a</td>
+      <td>31712.0</td>
+      <td>7957.0</td>
+      <td>20.0585</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>5.0</td>
+      <td>e</td>
+      <td>29101.0</td>
+      <td>7558.0</td>
+      <td>20.6170</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>5.0</td>
+      <td>i</td>
+      <td>17780.0</td>
+      <td>4561.0</td>
+      <td>20.4154</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>5.0</td>
+      <td>o</td>
+      <td>26208.0</td>
+      <td>7011.0</td>
+      <td>21.1054</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>5.0</td>
+      <td>u</td>
+      <td>5382.0</td>
+      <td>1323.0</td>
+      <td>19.7315</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.0</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>Model comparison</h2>
+<p>The primary selection metric is <b>speaker-macro balanced accuracy</b>: five-vowel recall is
+calculated separately for each unseen speaker, then speakers receive equal weight. The dashed line
+at 0.20 is the uniform five-class reference level.</p>
+<img src='assets/model_comparison.png' alt='Model comparison'>
+<div class='table-wrap'><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>config_id</th>
+      <th>model</th>
+      <th>feature_set</th>
+      <th>n_features</th>
+      <th>n_oof_tokens</th>
+      <th>n_oof_speakers</th>
+      <th>accuracy_oof</th>
+      <th>balanced_accuracy_oof</th>
+      <th>macro_f1_oof</th>
+      <th>speaker_macro_accuracy</th>
+      <th>speaker_macro_balanced_accuracy</th>
+      <th>speaker_macro_balanced_ci_low</th>
+      <th>speaker_macro_balanced_ci_high</th>
+      <th>speaker_macro_f1</th>
+      <th>fold_balanced_accuracy_mean</th>
+      <th>fold_balanced_accuracy_sd</th>
+      <th>fold_macro_f1_mean</th>
+      <th>fold_macro_f1_sd</th>
+      <th>status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>12.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.6709</td>
+      <td>0.6878</td>
+      <td>0.6347</td>
+      <td>0.6782</td>
+      <td>0.6847</td>
+      <td>0.6667</td>
+      <td>0.7021</td>
+      <td>0.6415</td>
+      <td>0.6855</td>
+      <td>0.0294</td>
+      <td>0.6352</td>
+      <td>0.0434</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>12.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.7550</td>
+      <td>0.6951</td>
+      <td>0.7007</td>
+      <td>0.7596</td>
+      <td>0.6842</td>
+      <td>0.6644</td>
+      <td>0.7047</td>
+      <td>0.6862</td>
+      <td>0.6932</td>
+      <td>0.0241</td>
+      <td>0.6985</td>
+      <td>0.0241</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.6771</td>
+      <td>0.6848</td>
+      <td>0.6380</td>
+      <td>0.6856</td>
+      <td>0.6833</td>
+      <td>0.6654</td>
+      <td>0.7008</td>
+      <td>0.6464</td>
+      <td>0.6825</td>
+      <td>0.0268</td>
+      <td>0.6384</td>
+      <td>0.0457</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>2.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.6751</td>
+      <td>0.6824</td>
+      <td>0.6361</td>
+      <td>0.6870</td>
+      <td>0.6823</td>
+      <td>0.6634</td>
+      <td>0.7009</td>
+      <td>0.6454</td>
+      <td>0.6798</td>
+      <td>0.0294</td>
+      <td>0.6361</td>
+      <td>0.0521</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>QDA regularized__F1_F2_F3</td>
+      <td>QDA regularized</td>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.6995</td>
+      <td>0.6862</td>
+      <td>0.6580</td>
+      <td>0.7068</td>
+      <td>0.6815</td>
+      <td>0.6635</td>
+      <td>0.6995</td>
+      <td>0.6592</td>
+      <td>0.6835</td>
+      <td>0.0232</td>
+      <td>0.6577</td>
+      <td>0.0413</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>2.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.6688</td>
+      <td>0.6811</td>
+      <td>0.6316</td>
+      <td>0.6813</td>
+      <td>0.6811</td>
+      <td>0.6606</td>
+      <td>0.7016</td>
+      <td>0.6413</td>
+      <td>0.6785</td>
+      <td>0.0351</td>
+      <td>0.6316</td>
+      <td>0.0566</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2</td>
+      <td>2.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.6712</td>
+      <td>0.6803</td>
+      <td>0.6328</td>
+      <td>0.6823</td>
+      <td>0.6800</td>
+      <td>0.6609</td>
+      <td>0.6992</td>
+      <td>0.6411</td>
+      <td>0.6779</td>
+      <td>0.0343</td>
+      <td>0.6330</td>
+      <td>0.0556</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__ALL_SAFE_NUMERIC</td>
+      <td>LDA shrinkage</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>12.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.6645</td>
+      <td>0.6793</td>
+      <td>0.6281</td>
+      <td>0.6748</td>
+      <td>0.6795</td>
+      <td>0.6598</td>
+      <td>0.6979</td>
+      <td>0.6363</td>
+      <td>0.6769</td>
+      <td>0.0350</td>
+      <td>0.6281</td>
+      <td>0.0523</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2_F3</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.6696</td>
+      <td>0.6787</td>
+      <td>0.6305</td>
+      <td>0.6775</td>
+      <td>0.6777</td>
+      <td>0.6592</td>
+      <td>0.6955</td>
+      <td>0.6382</td>
+      <td>0.6767</td>
+      <td>0.0365</td>
+      <td>0.6312</td>
+      <td>0.0555</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.6474</td>
+      <td>0.6586</td>
+      <td>0.6111</td>
+      <td>0.6595</td>
+      <td>0.6581</td>
+      <td>0.6368</td>
+      <td>0.6798</td>
+      <td>0.6195</td>
+      <td>0.6558</td>
+      <td>0.0357</td>
+      <td>0.6107</td>
+      <td>0.0594</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.7265</td>
+      <td>0.6570</td>
+      <td>0.6620</td>
+      <td>0.7320</td>
+      <td>0.6487</td>
+      <td>0.6304</td>
+      <td>0.6668</td>
+      <td>0.6522</td>
+      <td>0.6548</td>
+      <td>0.0212</td>
+      <td>0.6590</td>
+      <td>0.0169</td>
+      <td>OK</td>
+    </tr>
+    <tr>
+      <td>Majority class__F1_F2</td>
+      <td>Majority class</td>
+      <td>F1_F2</td>
+      <td>2.0</td>
+      <td>138593.0</td>
+      <td>43.0</td>
+      <td>0.2862</td>
+      <td>0.2000</td>
+      <td>0.0890</td>
+      <td>0.2883</td>
+      <td>0.2000</td>
+      <td>0.2000</td>
+      <td>0.2000</td>
+      <td>0.0894</td>
+      <td>0.2000</td>
+      <td>0.0000</td>
+      <td>0.0890</td>
+      <td>0.0035</td>
+      <td>OK</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h3>Fold-level results</h3>
+<div class='table-wrap'><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>config_id</th>
+      <th>model</th>
+      <th>feature_set</th>
+      <th>fold</th>
+      <th>train_tokens</th>
+      <th>test_tokens</th>
+      <th>train_speakers</th>
+      <th>test_speakers</th>
+      <th>accuracy</th>
+      <th>balanced_accuracy</th>
+      <th>macro_f1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Majority class__F1_F2</td>
+      <td>Majority class</td>
+      <td>F1_F2</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.2761</td>
+      <td>0.2000</td>
+      <td>0.0865</td>
+    </tr>
+    <tr>
+      <td>Majority class__F1_F2</td>
+      <td>Majority class</td>
+      <td>F1_F2</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.2775</td>
+      <td>0.2000</td>
+      <td>0.0869</td>
+    </tr>
+    <tr>
+      <td>Majority class__F1_F2</td>
+      <td>Majority class</td>
+      <td>F1_F2</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.3116</td>
+      <td>0.2000</td>
+      <td>0.0950</td>
+    </tr>
+    <tr>
+      <td>Majority class__F1_F2</td>
+      <td>Majority class</td>
+      <td>F1_F2</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.2856</td>
+      <td>0.2000</td>
+      <td>0.0889</td>
+    </tr>
+    <tr>
+      <td>Majority class__F1_F2</td>
+      <td>Majority class</td>
+      <td>F1_F2</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.2801</td>
+      <td>0.2000</td>
+      <td>0.0875</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.5674</td>
+      <td>0.6297</td>
+      <td>0.5468</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.6554</td>
+      <td>0.6661</td>
+      <td>0.6137</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7042</td>
+      <td>0.6865</td>
+      <td>0.6659</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.6706</td>
+      <td>0.6838</td>
+      <td>0.6355</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7429</td>
+      <td>0.7263</td>
+      <td>0.6959</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.5718</td>
+      <td>0.6299</td>
+      <td>0.5503</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.6562</td>
+      <td>0.6639</td>
+      <td>0.6133</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7133</td>
+      <td>0.6929</td>
+      <td>0.6744</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.6729</td>
+      <td>0.6802</td>
+      <td>0.6357</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7381</td>
+      <td>0.7225</td>
+      <td>0.6914</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.5790</td>
+      <td>0.6381</td>
+      <td>0.5580</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.6632</td>
+      <td>0.6705</td>
+      <td>0.6208</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7144</td>
+      <td>0.6907</td>
+      <td>0.6733</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.6755</td>
+      <td>0.6813</td>
+      <td>0.6366</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2</td>
+      <td>Logistic regression</td>
+      <td>F1_F2</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7400</td>
+      <td>0.7186</td>
+      <td>0.6920</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.5465</td>
+      <td>0.6119</td>
+      <td>0.5280</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.6326</td>
+      <td>0.6434</td>
+      <td>0.5920</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.6953</td>
+      <td>0.6708</td>
+      <td>0.6541</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.6301</td>
+      <td>0.6451</td>
+      <td>0.5987</td>
+    </tr>
+    <tr>
+      <td>Nearest centroid__F1_F2_F3</td>
+      <td>Nearest centroid</td>
+      <td>F1_F2_F3</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7278</td>
+      <td>0.7075</td>
+      <td>0.6807</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2_F3</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2_F3</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.5758</td>
+      <td>0.6340</td>
+      <td>0.5535</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2_F3</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2_F3</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.6343</td>
+      <td>0.6443</td>
+      <td>0.5923</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2_F3</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7050</td>
+      <td>0.6852</td>
+      <td>0.6648</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2_F3</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2_F3</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.7002</td>
+      <td>0.7006</td>
+      <td>0.6616</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__F1_F2_F3</td>
+      <td>LDA shrinkage</td>
+      <td>F1_F2_F3</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7308</td>
+      <td>0.7191</td>
+      <td>0.6835</td>
+    </tr>
+    <tr>
+      <td>QDA regularized__F1_F2_F3</td>
+      <td>QDA regularized</td>
+      <td>F1_F2_F3</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.6284</td>
+      <td>0.6689</td>
+      <td>0.6055</td>
+    </tr>
+    <tr>
+      <td>QDA regularized__F1_F2_F3</td>
+      <td>QDA regularized</td>
+      <td>F1_F2_F3</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.6738</td>
+      <td>0.6642</td>
+      <td>0.6305</td>
+    </tr>
+    <tr>
+      <td>QDA regularized__F1_F2_F3</td>
+      <td>QDA regularized</td>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7176</td>
+      <td>0.6723</td>
+      <td>0.6726</td>
+    </tr>
+    <tr>
+      <td>QDA regularized__F1_F2_F3</td>
+      <td>QDA regularized</td>
+      <td>F1_F2_F3</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.7090</td>
+      <td>0.6919</td>
+      <td>0.6673</td>
+    </tr>
+    <tr>
+      <td>QDA regularized__F1_F2_F3</td>
+      <td>QDA regularized</td>
+      <td>F1_F2_F3</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7663</td>
+      <td>0.7205</td>
+      <td>0.7127</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.5921</td>
+      <td>0.6484</td>
+      <td>0.5705</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.6554</td>
+      <td>0.6641</td>
+      <td>0.6153</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7077</td>
+      <td>0.6862</td>
+      <td>0.6665</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.6956</td>
+      <td>0.6974</td>
+      <td>0.6544</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__F1_F2_F3</td>
+      <td>Logistic regression</td>
+      <td>F1_F2_F3</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7327</td>
+      <td>0.7164</td>
+      <td>0.6851</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__ALL_SAFE_NUMERIC</td>
+      <td>LDA shrinkage</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.5811</td>
+      <td>0.6446</td>
+      <td>0.5613</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__ALL_SAFE_NUMERIC</td>
+      <td>LDA shrinkage</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.6277</td>
+      <td>0.6440</td>
+      <td>0.5893</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__ALL_SAFE_NUMERIC</td>
+      <td>LDA shrinkage</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7032</td>
+      <td>0.6777</td>
+      <td>0.6626</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__ALL_SAFE_NUMERIC</td>
+      <td>LDA shrinkage</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.6749</td>
+      <td>0.6906</td>
+      <td>0.6389</td>
+    </tr>
+    <tr>
+      <td>LDA shrinkage__ALL_SAFE_NUMERIC</td>
+      <td>LDA shrinkage</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7332</td>
+      <td>0.7278</td>
+      <td>0.6886</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.6065</td>
+      <td>0.6632</td>
+      <td>0.5855</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.6392</td>
+      <td>0.6563</td>
+      <td>0.6012</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7050</td>
+      <td>0.6877</td>
+      <td>0.6666</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.6707</td>
+      <td>0.6892</td>
+      <td>0.6336</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7308</td>
+      <td>0.7313</td>
+      <td>0.6892</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.7002</td>
+      <td>0.6788</td>
+      <td>0.6593</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7191</td>
+      <td>0.6474</td>
+      <td>0.6531</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7168</td>
+      <td>0.6253</td>
+      <td>0.6391</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.7260</td>
+      <td>0.6507</td>
+      <td>0.6577</td>
+    </tr>
+    <tr>
+      <td>Random forest__F1_F2_F3</td>
+      <td>Random forest</td>
+      <td>F1_F2_F3</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7692</td>
+      <td>0.6716</td>
+      <td>0.6856</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>1.0</td>
+      <td>111294.0</td>
+      <td>27299.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.7285</td>
+      <td>0.7127</td>
+      <td>0.6924</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>2.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7370</td>
+      <td>0.6803</td>
+      <td>0.6813</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>3.0</td>
+      <td>110505.0</td>
+      <td>28088.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.7481</td>
+      <td>0.6603</td>
+      <td>0.6763</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>4.0</td>
+      <td>111885.0</td>
+      <td>26708.0</td>
+      <td>35.0</td>
+      <td>8.0</td>
+      <td>0.7602</td>
+      <td>0.6928</td>
+      <td>0.7059</td>
+    </tr>
+    <tr>
+      <td>Random forest__ALL_SAFE_NUMERIC</td>
+      <td>Random forest</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5.0</td>
+      <td>110183.0</td>
+      <td>28410.0</td>
+      <td>34.0</td>
+      <td>9.0</td>
+      <td>0.8004</td>
+      <td>0.7196</td>
+      <td>0.7364</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>Best configuration</h2>
+<p><b>Logistic regression — ALL_SAFE_NUMERIC</b></p>
+<img src='assets/confusion_matrix_best.png' alt='Confusion matrix'>
+<img src='assets/per_vowel_best.png' alt='Per-vowel results'>
+<div class='table-wrap'><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>config_id</th>
+      <th>model</th>
+      <th>feature_set</th>
+      <th>vowel</th>
+      <th>precision</th>
+      <th>recall</th>
+      <th>f1</th>
+      <th>support</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>a</td>
+      <td>0.7858</td>
+      <td>0.7267</td>
+      <td>0.7551</td>
+      <td>39669.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>e</td>
+      <td>0.7353</td>
+      <td>0.6710</td>
+      <td>0.7017</td>
+      <td>36659.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>i</td>
+      <td>0.6867</td>
+      <td>0.8082</td>
+      <td>0.7425</td>
+      <td>22341.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>o</td>
+      <td>0.6990</td>
+      <td>0.4992</td>
+      <td>0.5825</td>
+      <td>33219.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>u</td>
+      <td>0.2669</td>
+      <td>0.7339</td>
+      <td>0.3915</td>
+      <td>6705.0</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h3>Generalization across unseen speakers</h3>
+<img src='assets/per_speaker_best.png' alt='Per-speaker results'>
+<div class='table-wrap'><table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>config_id</th>
+      <th>model</th>
+      <th>feature_set</th>
+      <th>speaker</th>
+      <th>n_tokens</th>
+      <th>accuracy</th>
+      <th>balanced_accuracy</th>
+      <th>macro_f1</th>
+      <th>n_true_vowels_present</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>061ea7d0-Audio_SP16</td>
+      <td>2903.0</td>
+      <td>0.7957</td>
+      <td>0.7540</td>
+      <td>0.7497</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>0af9ac47-Audio_SP14</td>
+      <td>3466.0</td>
+      <td>0.6777</td>
+      <td>0.5765</td>
+      <td>0.5948</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>0e6115f2-Audio_SP19</td>
+      <td>3495.0</td>
+      <td>0.6229</td>
+      <td>0.6673</td>
+      <td>0.5842</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>0f786745-Audio_SP20</td>
+      <td>3677.0</td>
+      <td>0.5602</td>
+      <td>0.6422</td>
+      <td>0.5695</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>12c532f8-Audio_SP15</td>
+      <td>3342.0</td>
+      <td>0.7439</td>
+      <td>0.7474</td>
+      <td>0.7030</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>181d5ce9-Audio_SP21</td>
+      <td>1729.0</td>
+      <td>0.6287</td>
+      <td>0.6854</td>
+      <td>0.6005</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>1c403477-Audio_SP13</td>
+      <td>3321.0</td>
+      <td>0.7004</td>
+      <td>0.7511</td>
+      <td>0.6647</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>1d46eb6e-Audio_SP18</td>
+      <td>4972.0</td>
+      <td>0.7416</td>
+      <td>0.7490</td>
+      <td>0.7014</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>2988c6fc-Audio_SP13</td>
+      <td>2406.0</td>
+      <td>0.6978</td>
+      <td>0.7116</td>
+      <td>0.6484</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>2e25304d-Audio_SP12</td>
+      <td>1234.0</td>
+      <td>0.7650</td>
+      <td>0.7043</td>
+      <td>0.7271</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>30a90cb2-Audio_SP21</td>
+      <td>3151.0</td>
+      <td>0.5779</td>
+      <td>0.6309</td>
+      <td>0.5483</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>3361ee02-Audio_SP10</td>
+      <td>2233.0</td>
+      <td>0.6050</td>
+      <td>0.6076</td>
+      <td>0.5697</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>34ad326e-Audio_SP7</td>
+      <td>1458.0</td>
+      <td>0.5405</td>
+      <td>0.5867</td>
+      <td>0.5156</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>375a28cd-Audio_SP16</td>
+      <td>3445.0</td>
+      <td>0.4630</td>
+      <td>0.5472</td>
+      <td>0.4432</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>42d56bbf-Audio_SP23</td>
+      <td>9770.0</td>
+      <td>0.5298</td>
+      <td>0.6161</td>
+      <td>0.5138</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>49ae7020-Audio_SP17</td>
+      <td>2377.0</td>
+      <td>0.7758</td>
+      <td>0.7204</td>
+      <td>0.7290</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>501e6487-Audio_SP19</td>
+      <td>5259.0</td>
+      <td>0.6480</td>
+      <td>0.6726</td>
+      <td>0.6085</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>514fc6b6-Audio_SP19</td>
+      <td>4227.0</td>
+      <td>0.7353</td>
+      <td>0.7330</td>
+      <td>0.7083</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>51a17262-Audio_SP18</td>
+      <td>2738.0</td>
+      <td>0.7016</td>
+      <td>0.7038</td>
+      <td>0.6556</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5278b5b9-Audio_SP15</td>
+      <td>1916.0</td>
+      <td>0.5167</td>
+      <td>0.5941</td>
+      <td>0.4908</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5586979c-Audio_SP18</td>
+      <td>4244.0</td>
+      <td>0.8014</td>
+      <td>0.7597</td>
+      <td>0.7293</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5819ce7a-Audio_SP11</td>
+      <td>3848.0</td>
+      <td>0.7739</td>
+      <td>0.7046</td>
+      <td>0.7104</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>5a932187-audio_SP16</td>
+      <td>3930.0</td>
+      <td>0.6601</td>
+      <td>0.6026</td>
+      <td>0.6191</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>63239054-Audio_SP15</td>
+      <td>2628.0</td>
+      <td>0.7013</td>
+      <td>0.7026</td>
+      <td>0.6534</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>713a2f9b-Audio_SP16</td>
+      <td>3172.0</td>
+      <td>0.6349</td>
+      <td>0.6908</td>
+      <td>0.6189</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>7a414497-Audio_SP15</td>
+      <td>2137.0</td>
+      <td>0.7978</td>
+      <td>0.7881</td>
+      <td>0.7719</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>7aee4437-Audio_SP12</td>
+      <td>1642.0</td>
+      <td>0.7570</td>
+      <td>0.7137</td>
+      <td>0.7232</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>7c3c98d2-Audio_SP13</td>
+      <td>4155.0</td>
+      <td>0.6366</td>
+      <td>0.6057</td>
+      <td>0.5802</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>7dec1dd7-Audio_SP13</td>
+      <td>2334.0</td>
+      <td>0.7609</td>
+      <td>0.7389</td>
+      <td>0.7315</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>7e277fda-Audio_SP28</td>
+      <td>3383.0</td>
+      <td>0.7029</td>
+      <td>0.6971</td>
+      <td>0.6771</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>85c7895f-Audio_SP16</td>
+      <td>5726.0</td>
+      <td>0.6149</td>
+      <td>0.6718</td>
+      <td>0.5699</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>919b9bc1-Audio_SP14</td>
+      <td>2133.0</td>
+      <td>0.7665</td>
+      <td>0.7626</td>
+      <td>0.7296</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>9a0c18cb-Audio_SP14</td>
+      <td>2033.0</td>
+      <td>0.6680</td>
+      <td>0.6842</td>
+      <td>0.6362</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>a1a056ce-Audio_SP11</td>
+      <td>1617.0</td>
+      <td>0.6376</td>
+      <td>0.6915</td>
+      <td>0.5879</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>a452055c-Audio_SP11</td>
+      <td>3839.0</td>
+      <td>0.6476</td>
+      <td>0.6947</td>
+      <td>0.6251</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>adad0062-Audio_SP17</td>
+      <td>3705.0</td>
+      <td>0.7436</td>
+      <td>0.7320</td>
+      <td>0.6997</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>c3533b36-Audio_SP16</td>
+      <td>1959.0</td>
+      <td>0.7912</td>
+      <td>0.7607</td>
+      <td>0.7506</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>cafd9c21-Audio_SP27</td>
+      <td>4907.0</td>
+      <td>0.7536</td>
+      <td>0.7385</td>
+      <td>0.7144</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>d4c363bf-Audio_SP13</td>
+      <td>3390.0</td>
+      <td>0.6773</td>
+      <td>0.7011</td>
+      <td>0.6431</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>dbeec025-Audio_SP13</td>
+      <td>2727.0</td>
+      <td>0.6439</td>
+      <td>0.6255</td>
+      <td>0.6343</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>e90f8e4d-Audio_SP22</td>
+      <td>2564.0</td>
+      <td>0.6658</td>
+      <td>0.7149</td>
+      <td>0.6378</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>f061152e-Audio_SP12</td>
+      <td>2900.0</td>
+      <td>0.6634</td>
+      <td>0.5782</td>
+      <td>0.5956</td>
+      <td>5.0</td>
+    </tr>
+    <tr>
+      <td>Logistic regression__ALL_SAFE_NUMERIC</td>
+      <td>Logistic regression</td>
+      <td>ALL_SAFE_NUMERIC</td>
+      <td>fcd45f4d-Audio_SP21</td>
+      <td>2501.0</td>
+      <td>0.6345</td>
+      <td>0.6815</td>
+      <td>0.6170</td>
+      <td>5.0</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2>Saved system</h2>
+<p>The selected pipeline was refitted on all available speakers and saved as:</p>
+<p><code>/home/pires/projects/speech-research/results/vowel_classification_raw/best_vowel_classifier.joblib</code></p>
+<p>Its feature and class definitions are stored in <code>best_model_metadata.json</code>. This final
+fit is intended for later prediction on new data; its performance estimate comes from the
+speaker-disjoint out-of-fold evaluation above, not from the refit itself.</p>
+
+<h2>Warnings and interpretation cautions</h2>
+<ul><li>Bandwidth handling: B1 -&gt; B1_Hz using exp(B1); B2 -&gt; B2_Hz using exp(B2); B3 -&gt; B3_Hz using exp(B3)</li><li>LDA shrinkage__ALL_SAFE_NUMERIC, fold 1: Skipping features without any observed values: [&#x27;chunk_offset&#x27; &#x27;chunk_part&#x27;]. At least one non-missing value is needed for imputation with strategy=&#x27;median&#x27;.</li><li>Logistic regression__ALL_SAFE_NUMERIC, fold 1: Skipping features without any observed values: [&#x27;chunk_offset&#x27; &#x27;chunk_part&#x27;]. At least one non-missing value is needed for imputation with strategy=&#x27;median&#x27;.</li><li>Random forest__ALL_SAFE_NUMERIC, fold 1: Skipping features without any observed values: [&#x27;chunk_offset&#x27; &#x27;chunk_part&#x27;]. At least one non-missing value is needed for imputation with strategy=&#x27;median&#x27;.</li></ul>
+<ul>
+<li>One CSV row is treated as one vowel token, consistent with the new-fave point output used here.</li>
+<li>Balanced accuracy and macro-F1 are more informative than ordinary accuracy because /u/ is rarer.</li>
+<li>The test sets were never oversampled or undersampled.</li>
+<li>The current study uses raw features. A Lobanov comparison can later use the exact same speaker folds.</li>
+<li>Model comparison is exploratory; hyperparameters were fixed rather than tuned on the outer test folds.</li>
+</ul>
+</body></html>

@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+5819ce7a-Audio_SP11.csv,5819ce7a-Audio_SP11,data/raw/sound/5819ce7a-Audio_SP11.v0.wav,2594.832,1297.416,time column: time,audio_duration,4050,2214,1836,14.35875,2584.94875

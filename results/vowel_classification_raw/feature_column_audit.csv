@@ -1,0 +1,39 @@
+column,selected_for_all_safe_numeric,reason,numeric_convertible_rate,nonmissing_numeric
+F1,True,,1.0,138593
+F2,True,,1.0,138593
+F3,True,,1.0,138593
+B1,False,replaced by converted Hz column,1.0,138593
+B2,False,replaced by converted Hz column,1.0,138593
+B3,False,replaced by converted Hz column,1.0,138593
+max_formant,False,"identifier, label, recording-position, or processing-setting pattern",1.0,138593
+smooth_error,False,"identifier, label, recording-position, or processing-setting pattern",1.0,138593
+time,False,"identifier, label, recording-position, or processing-setting pattern",1.0,138593
+rel_time,False,"identifier, label, recording-position, or processing-setting pattern",1.0,138593
+prop_time,False,"identifier, label, recording-position, or processing-setting pattern",1.0,138593
+id,False,"identifier, label, recording-position, or processing-setting pattern",0.0,0
+label,False,"identifier, label, recording-position, or processing-setting pattern",0.0,0
+file_name,False,"identifier, label, recording-position, or processing-setting pattern",0.0,0
+group,False,less than 90% numeric among non-missing values (0.0%),0.0,0
+speaker_num,False,"identifier, label, recording-position, or processing-setting pattern",1.0,138593
+point_heuristic,False,"identifier, label, recording-position, or processing-setting pattern",0.0,0
+f0,True,,1.0,137062
+intensity,True,,1.0,138593
+optimized,True,,1.0,138593
+word,False,"identifier, label, recording-position, or processing-setting pattern",9.379983116030391e-05,13
+stress,False,less than 90% numeric among non-missing values (0.0%),0.0,0
+dur,True,,1.0,138593
+pre_word,False,"identifier, label, recording-position, or processing-setting pattern",1.446037495752265e-05,2
+fol_word,False,"identifier, label, recording-position, or processing-setting pattern",3.613265018536049e-05,5
+pre_seg,False,less than 90% numeric among non-missing values (0.0%),0.0,0
+fol_seg,False,less than 90% numeric among non-missing values (0.0%),0.0,0
+abs_pre_seg,False,less than 90% numeric among non-missing values (0.0%),0.0,0
+abs_fol_seg,False,less than 90% numeric among non-missing values (0.0%),0.0,0
+context,False,less than 90% numeric among non-missing values (0.0%),0.0,0
+B1_Hz,True,,1.0,138593
+B2_Hz,True,,1.0,138593
+B3_Hz,True,,1.0,138593
+chunk_part,True,,1.0,9770
+chunk_offset,True,,1.0,9770
+chunk_time,False,"identifier, label, recording-position, or processing-setting pattern",1.0,9770
+original_chunk_id,False,"identifier, label, recording-position, or processing-setting pattern",0.0,0
+chunk_file_name,False,"identifier, label, recording-position, or processing-setting pattern",0.0,0

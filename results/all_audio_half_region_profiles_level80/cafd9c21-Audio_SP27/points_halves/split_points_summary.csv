@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+cafd9c21-Audio_SP27.csv,cafd9c21-Audio_SP27,data/raw/sound/cafd9c21-Audio_SP27.v0.wav,3905.76,1952.88,time column: time,audio_duration,5198,2617,2581,5.385750000000001,3894.45075

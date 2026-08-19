@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+0af9ac47-Audio_SP14.csv,0af9ac47-Audio_SP14,data/raw/sound/0af9ac47-Audio_SP14.v0.wav,2920.032,1460.016,time column: time,audio_duration,3609,1840,1769,31.28375,2904.4837500000003

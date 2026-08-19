@@ -1,0 +1,1 @@
+config_id,model,feature_set,speaker,n_tokens,accuracy,balanced_accuracy,macro_f1,n_true_vowels_present,join_id,Time.code.and.speaker,Sex,CountryRes,Education,Income_raw,_merge

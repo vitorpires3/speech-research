@@ -1,0 +1,15 @@
+variable,source_column,category,n_speakers,retained
+gender,Sex,m,33,True
+gender,Sex,f,10,True
+nationality,CountryRes,ve,17,True
+nationality,CountryRes,co,8,True
+nationality,CountryRes,pe,5,True
+nationality,CountryRes,ar,5,True
+nationality,CountryRes,ec,4,True
+nationality,CountryRes,do,2,True
+nationality,CountryRes,sv,1,False
+nationality,CountryRes,py,1,False
+income,Income_group,3,15,True
+income,Income_group,2,12,True
+income,Income_group,4,11,True
+income,Income_group,1,5,True

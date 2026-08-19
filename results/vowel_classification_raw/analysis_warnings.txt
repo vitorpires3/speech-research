@@ -1,0 +1,4 @@
+Bandwidth handling: B1 -> B1_Hz using exp(B1); B2 -> B2_Hz using exp(B2); B3 -> B3_Hz using exp(B3)
+LDA shrinkage__ALL_SAFE_NUMERIC, fold 1: Skipping features without any observed values: ['chunk_offset' 'chunk_part']. At least one non-missing value is needed for imputation with strategy='median'.
+Logistic regression__ALL_SAFE_NUMERIC, fold 1: Skipping features without any observed values: ['chunk_offset' 'chunk_part']. At least one non-missing value is needed for imputation with strategy='median'.
+Random forest__ALL_SAFE_NUMERIC, fold 1: Skipping features without any observed values: ['chunk_offset' 'chunk_part']. At least one non-missing value is needed for imputation with strategy='median'.

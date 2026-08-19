@@ -1,0 +1,8 @@
+matrix,n_speakers,n_pairs,predictors,r_squared,global_p,status
+/i/,41,820,"same_gender, same_nationality, income_distance",0.13698191641791946,0.00039996000399960006,OK
+/e/,41,820,"same_gender, same_nationality, income_distance",0.09466882394340126,0.0007999200079992001,OK
+/a/,41,820,"same_gender, same_nationality, income_distance",0.14889944569930091,0.00019998000199980003,OK
+/o/,41,820,"same_gender, same_nationality, income_distance",0.09880414204523891,0.0004999500049995,OK
+/u/,41,820,"same_gender, same_nationality, income_distance",0.038724678958524716,0.04509549045095491,OK
+All vowels,41,820,"same_gender, same_nationality, income_distance",0.1573060815028806,9.999000099990002e-05,OK
+All except /u/,41,820,"same_gender, same_nationality, income_distance",0.1739712140390881,9.999000099990002e-05,OK

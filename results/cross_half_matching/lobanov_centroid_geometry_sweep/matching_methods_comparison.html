@@ -1,0 +1,431 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+
+<title>
+Cross-half matching comparison
+</title>
+
+<style>
+
+body {
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    margin: 2rem;
+    line-height: 1.45;
+    color: #222;
+    background: #fff;
+}
+
+h1 {
+    margin-bottom: 0.3rem;
+}
+
+.description {
+    max-width: 1000px;
+    color: #444;
+    margin-bottom: 2rem;
+}
+
+.table-container {
+    overflow-x: auto;
+    border: 1px solid #ddd;
+}
+
+table {
+    width: 100%;
+    min-width: 1500px;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 0.55rem 0.7rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background: #eeeeee;
+    z-index: 1;
+}
+
+tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+tbody tr:hover {
+    background: #f0f5ff;
+}
+
+.case-name {
+    text-align: left;
+    font-weight: 600;
+}
+
+.best {
+    font-weight: 700;
+}
+
+.note {
+    max-width: 1000px;
+    margin-top: 1.5rem;
+    color: #444;
+    font-size: 0.9rem;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>
+Cross-half matching comparison
+</h1>
+
+<p class="description">
+Each configuration uses the median normalized F1 and F2
+values calculated independently for H1 and H2.
+The centroid block contains the ten vowel-center coordinates.
+The geometry block contains the ten pairwise distances
+between the five vowel centers.
+</p>
+
+<div class="table-container">
+
+<table>
+
+<thead>
+<tr>
+    <th>Configuration</th>
+
+    <th>Centroid<br>weight</th>
+    <th>Geometry<br>weight</th>
+
+    <th>Top-1<br>accuracy</th>
+    <th>Top-3<br>accuracy</th>
+    <th>Top-5<br>accuracy</th>
+
+    <th>Hungarian<br>accuracy</th>
+    <th>Correct Hungarian<br>assignments</th>
+
+    <th>Mean true-match<br>rank</th>
+    <th>Median true-match<br>rank</th>
+
+    <th>Mean reciprocal<br>rank</th>
+
+    <th>Mean true-pair<br>cost</th>
+    <th>Mean false-pair<br>cost</th>
+
+    <th>Median true-pair<br>cost</th>
+    <th>Median false-pair<br>cost</th>
+</tr>
+</thead>
+
+<tbody>
+
+        <tr>
+            <td class="case-name">02_centroids_75_geometry_25</td>
+
+            <td>0.7500</td>
+            <td>0.2500</td>
+
+            <td>
+                <strong class="best">62.79%</strong>
+            </td>
+
+            <td>
+                <strong class="best">79.07%</strong>
+            </td>
+
+            <td>
+                <strong class="best">86.05%</strong>
+            </td>
+
+            <td>
+                <strong class="best">81.40%</strong>
+            </td>
+
+            <td>
+                35
+                / 43
+            </td>
+
+            <td>
+                2.9302
+            </td>
+
+            <td>
+                1.0000
+            </td>
+
+            <td>
+                <strong class="best">0.7234</strong>
+            </td>
+
+            <td>
+                0.4789
+            </td>
+
+            <td>
+                1.0534
+            </td>
+
+            <td>
+                0.4755
+            </td>
+
+            <td>
+                1.0167
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="case-name">03_centroids_50_geometry_50</td>
+
+            <td>0.5000</td>
+            <td>0.5000</td>
+
+            <td>
+                60.47%
+            </td>
+
+            <td>
+                <strong class="best">79.07%</strong>
+            </td>
+
+            <td>
+                81.40%
+            </td>
+
+            <td>
+                72.09%
+            </td>
+
+            <td>
+                31
+                / 43
+            </td>
+
+            <td>
+                3.1860
+            </td>
+
+            <td>
+                1.0000
+            </td>
+
+            <td>
+                0.7086
+            </td>
+
+            <td>
+                0.4796
+            </td>
+
+            <td>
+                1.0517
+            </td>
+
+            <td>
+                0.4640
+            </td>
+
+            <td>
+                1.0191
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="case-name">01_centroids_100</td>
+
+            <td>1.0000</td>
+            <td>0.0000</td>
+
+            <td>
+                58.14%
+            </td>
+
+            <td>
+                <strong class="best">79.07%</strong>
+            </td>
+
+            <td>
+                <strong class="best">86.05%</strong>
+            </td>
+
+            <td>
+                79.07%
+            </td>
+
+            <td>
+                34
+                / 43
+            </td>
+
+            <td>
+                <strong class="best">2.8605</strong>
+            </td>
+
+            <td>
+                1.0000
+            </td>
+
+            <td>
+                0.7000
+            </td>
+
+            <td>
+                0.4782
+            </td>
+
+            <td>
+                1.0552
+            </td>
+
+            <td>
+                0.4487
+            </td>
+
+            <td>
+                1.0105
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="case-name">04_centroids_25_geometry_75</td>
+
+            <td>0.2500</td>
+            <td>0.7500</td>
+
+            <td>
+                53.49%
+            </td>
+
+            <td>
+                72.09%
+            </td>
+
+            <td>
+                79.07%
+            </td>
+
+            <td>
+                62.79%
+            </td>
+
+            <td>
+                27
+                / 43
+            </td>
+
+            <td>
+                3.7209
+            </td>
+
+            <td>
+                1.0000
+            </td>
+
+            <td>
+                0.6588
+            </td>
+
+            <td>
+                0.4803
+            </td>
+
+            <td>
+                1.0499
+            </td>
+
+            <td>
+                0.4846
+            </td>
+
+            <td>
+                1.0161
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="case-name">05_geometry_100</td>
+
+            <td>0.0000</td>
+            <td>1.0000</td>
+
+            <td>
+                53.49%
+            </td>
+
+            <td>
+                65.12%
+            </td>
+
+            <td>
+                74.42%
+            </td>
+
+            <td>
+                62.79%
+            </td>
+
+            <td>
+                27
+                / 43
+            </td>
+
+            <td>
+                4.2791
+            </td>
+
+            <td>
+                1.0000
+            </td>
+
+            <td>
+                0.6296
+            </td>
+
+            <td>
+                0.4810
+            </td>
+
+            <td>
+                1.0481
+            </td>
+
+            <td>
+                0.4845
+            </td>
+
+            <td>
+                1.0064
+            </td>
+        </tr>
+        
+</tbody>
+
+</table>
+
+</div>
+
+<p class="note">
+Bold values indicate the best result for identification metrics.
+For mean true-match rank, the lowest value is considered best.
+Costs should mainly be compared between true and false pairs
+within the same configuration.
+</p>
+
+</body>
+</html>

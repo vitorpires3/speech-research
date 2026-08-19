@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+501e6487-Audio_SP19.csv,501e6487-Audio_SP19,data/raw/sound/501e6487-Audio_SP19.v0.wav,3498.072,1749.036,time column: time,audio_duration,5439,2981,2458,12.75575,3488.69575

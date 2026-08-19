@@ -1,0 +1,2 @@
+source_file,audio_id,audio_path,audio_duration,split_time,time_basis,split_basis,total_rows,H1_rows,H2_rows,min_token_time,max_token_time
+c3533b36-Audio_SP16.csv,c3533b36-Audio_SP16,data/raw/sound/c3533b36-Audio_SP16.v0.wav,2860.248,1430.124,time column: time,audio_duration,2024,1135,889,22.75375,2833.35375

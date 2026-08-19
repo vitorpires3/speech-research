@@ -1,0 +1,3 @@
+42d56bbf-Audio_SP23.v0.TextGrid
+- Out of memory during new-fave processing:
+  approximately 30 GB RAM used

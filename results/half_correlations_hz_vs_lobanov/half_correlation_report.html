@@ -1,0 +1,644 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+
+<title>
+H1–H2 correlations: non-normalized versus Lobanov
+</title>
+
+<style>
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 2rem;
+    line-height: 1.45;
+    color: #222;
+}
+
+h1 {
+    margin-bottom: 0.25rem;
+}
+
+h2 {
+    margin-top: 2.5rem;
+}
+
+.description {
+    max-width: 1100px;
+    color: #444;
+}
+
+.note {
+    max-width: 1100px;
+    padding: 0.9rem 1rem;
+    background: #f5f5f5;
+    border-left: 4px solid #888;
+    margin: 1.2rem 0;
+}
+
+.table-container {
+    overflow-x: auto;
+    border: 1px solid #ddd;
+    margin-bottom: 2rem;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 1200px;
+    font-size: 0.82rem;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 0.45rem 0.6rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background: #eeeeee;
+    z-index: 1;
+}
+
+td:first-child,
+th:first-child,
+td:nth-child(2),
+th:nth-child(2) {
+    text-align: left;
+}
+
+tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+tbody tr:hover {
+    background: #f1f5ff;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0 2.5rem;
+    border: 1px solid #ddd;
+}
+
+code {
+    background: #f2f2f2;
+    padding: 0.1rem 0.25rem;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>
+H1–H2 acoustic-feature correlations
+</h1>
+
+<p class="description">
+This report compares the split-half stability of vowel
+centroids and vowel-space geometry before and after Lobanov
+normalization.
+For each feature, the H1 values across speakers were correlated
+with the corresponding H2 values from the same speakers.
+</p>
+
+<div class="note">
+<strong>Interpretation:</strong>
+Pearson correlation measures linear stability of the numerical
+values, whereas Spearman correlation measures stability of the
+speaker ranking.
+A high correlation does not necessarily imply exact agreement:
+H2 may be systematically shifted relative to H1 while preserving
+a high correlation.
+</div>
+
+<h2>Methods</h2>
+
+<ul>
+<li>
+Non-normalized source:
+<code>/home/pires/projects/speech-research/results/all_audio_half_region_profiles_level80</code>
+</li>
+
+<li>
+Lobanov source:
+<code>/home/pires/projects/speech-research/results/all_audio_half_region_profiles_lobanov_median_centroids</code>
+</li>
+
+<li>
+Centroid features:
+five vowels × F1/F2 = 10 coordinates.
+</li>
+
+<li>
+Geometry features:
+10 Euclidean distances between pairs of vowel centroids.
+</li>
+
+<li>
+Bootstrap confidence intervals:
+5,000 paired resamples of speakers.
+</li>
+
+<li>
+Correlation difference:
+Lobanov correlation minus non-normalized correlation.
+</li>
+
+<li>
+FDR q-values:
+Benjamini–Hochberg correction within each
+correlation/representation family.
+</li>
+</ul>
+
+<h2>Summary by feature block</h2>
+
+<div class="table-container">
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Feature block</th>
+      <th>Number of features</th>
+      <th>Median Pearson — Hz</th>
+      <th>Median Pearson — Lobanov</th>
+      <th>Median Spearman — Hz</th>
+      <th>Median Spearman — Lobanov</th>
+      <th>Features with higher Pearson after Lobanov</th>
+      <th>Features with higher Spearman after Lobanov</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Centroids</td>
+      <td>10</td>
+      <td>0.958</td>
+      <td>0.843</td>
+      <td>0.952</td>
+      <td>0.737</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>10</td>
+      <td>0.927</td>
+      <td>0.799</td>
+      <td>0.914</td>
+      <td>0.785</td>
+      <td>1</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Correlation heatmap</h2>
+
+<p class="description">
+Each cell shows the H1–H2 correlation for one acoustic feature.
+</p>
+
+<img
+    src="assets/correlation_heatmap.png"
+    alt="Correlation heatmap"
+>
+
+<h2>Pearson comparison</h2>
+
+<p class="description">
+Points above the diagonal have higher Pearson correlation after
+Lobanov normalization. Points below the diagonal are more stable
+in the non-normalized representation.
+</p>
+
+<img
+    src="assets/pearson_hz_vs_lobanov.png"
+    alt="Pearson correlation comparison"
+>
+
+<h2>Spearman comparison</h2>
+
+<p class="description">
+Points above the diagonal preserve speaker ranking better after
+Lobanov normalization. Points below the diagonal preserve ranking
+better before normalization.
+</p>
+
+<img
+    src="assets/spearman_hz_vs_lobanov.png"
+    alt="Spearman correlation comparison"
+>
+
+<h2>Detailed feature results</h2>
+
+<p class="description">
+Values in brackets are 95% paired-speaker bootstrap confidence
+intervals. A positive difference means that the Lobanov
+correlation is higher.
+</p>
+
+<div class="table-container">
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Feature block</th>
+      <th>Feature</th>
+      <th>N speakers</th>
+      <th>Pearson — Hz</th>
+      <th>Pearson — Lobanov</th>
+      <th>Pearson Δ<br>(Lobanov − Hz)</th>
+      <th>Pearson comparison</th>
+      <th>Pearson Hz FDR q</th>
+      <th>Pearson Lobanov FDR q</th>
+      <th>Spearman — Hz</th>
+      <th>Spearman — Lobanov</th>
+      <th>Spearman Δ<br>(Lobanov − Hz)</th>
+      <th>Spearman comparison</th>
+      <th>Spearman Hz FDR q</th>
+      <th>Spearman Lobanov FDR q</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Centroids</td>
+      <td>/a/ F1 centroid</td>
+      <td>43</td>
+      <td>0.968 [0.930, 0.988]</td>
+      <td>0.701 [0.488, 0.842]</td>
+      <td>-0.267 [-0.470, -0.134]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.950 [0.862, 0.986]</td>
+      <td>0.639 [0.395, 0.808]</td>
+      <td>-0.311 [-0.542, -0.148]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Centroids</td>
+      <td>/a/ F2 centroid</td>
+      <td>43</td>
+      <td>0.973 [0.930, 0.990]</td>
+      <td>0.895 [0.607, 0.955]</td>
+      <td>-0.078 [-0.335, -0.032]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.955 [0.900, 0.975]</td>
+      <td>0.645 [0.376, 0.824]</td>
+      <td>-0.309 [-0.571, -0.120]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Centroids</td>
+      <td>/e/ F1 centroid</td>
+      <td>43</td>
+      <td>0.964 [0.937, 0.982]</td>
+      <td>0.892 [0.795, 0.944]</td>
+      <td>-0.072 [-0.170, -0.018]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.962 [0.906, 0.985]</td>
+      <td>0.806 [0.614, 0.916]</td>
+      <td>-0.155 [-0.340, -0.039]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Centroids</td>
+      <td>/e/ F2 centroid</td>
+      <td>43</td>
+      <td>0.952 [0.926, 0.977]</td>
+      <td>0.891 [0.769, 0.952]</td>
+      <td>-0.062 [-0.192, 0.003]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.969 [0.923, 0.986]</td>
+      <td>0.849 [0.694, 0.930]</td>
+      <td>-0.119 [-0.269, -0.023]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Centroids</td>
+      <td>/i/ F1 centroid</td>
+      <td>43</td>
+      <td>0.953 [0.916, 0.978]</td>
+      <td>0.872 [0.789, 0.930]</td>
+      <td>-0.081 [-0.167, -0.015]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.956 [0.890, 0.982]</td>
+      <td>0.851 [0.707, 0.927]</td>
+      <td>-0.105 [-0.245, -0.007]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Centroids</td>
+      <td>/i/ F2 centroid</td>
+      <td>43</td>
+      <td>0.977 [0.949, 0.991]</td>
+      <td>0.777 [0.619, 0.879]</td>
+      <td>-0.200 [-0.360, -0.086]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.959 [0.887, 0.987]</td>
+      <td>0.756 [0.534, 0.881]</td>
+      <td>-0.203 [-0.429, -0.052]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Centroids</td>
+      <td>/o/ F1 centroid</td>
+      <td>43</td>
+      <td>0.962 [0.931, 0.981]</td>
+      <td>0.833 [0.731, 0.909]</td>
+      <td>-0.129 [-0.232, -0.049]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.927 [0.822, 0.974]</td>
+      <td>0.843 [0.720, 0.914]</td>
+      <td>-0.084 [-0.209, 0.033]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Centroids</td>
+      <td>/o/ F2 centroid</td>
+      <td>43</td>
+      <td>0.955 [0.912, 0.977]</td>
+      <td>0.852 [0.712, 0.925]</td>
+      <td>-0.102 [-0.238, -0.027]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.926 [0.844, 0.962]</td>
+      <td>0.718 [0.473, 0.875]</td>
+      <td>-0.208 [-0.442, -0.042]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Centroids</td>
+      <td>/u/ F1 centroid</td>
+      <td>43</td>
+      <td>0.904 [0.841, 0.949]</td>
+      <td>0.635 [0.390, 0.800]</td>
+      <td>-0.269 [-0.512, -0.100]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.888 [0.782, 0.938]</td>
+      <td>0.574 [0.290, 0.782]</td>
+      <td>-0.314 [-0.589, -0.091]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Centroids</td>
+      <td>/u/ F2 centroid</td>
+      <td>43</td>
+      <td>0.722 [0.532, 0.847]</td>
+      <td>0.651 [0.411, 0.815]</td>
+      <td>-0.071 [-0.282, 0.111]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.697 [0.464, 0.847]</td>
+      <td>0.590 [0.322, 0.776]</td>
+      <td>-0.107 [-0.370, 0.129]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>/a–o/ distance</td>
+      <td>43</td>
+      <td>0.901 [0.826, 0.957]</td>
+      <td>0.856 [0.738, 0.936]</td>
+      <td>-0.045 [-0.138, 0.033]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.910 [0.818, 0.950]</td>
+      <td>0.856 [0.701, 0.940]</td>
+      <td>-0.054 [-0.198, 0.061]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>/a–u/ distance</td>
+      <td>43</td>
+      <td>0.832 [0.691, 0.916]</td>
+      <td>0.565 [0.321, 0.746]</td>
+      <td>-0.267 [-0.460, -0.120]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.817 [0.659, 0.909]</td>
+      <td>0.518 [0.217, 0.742]</td>
+      <td>-0.299 [-0.565, -0.073]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>/e–a/ distance</td>
+      <td>43</td>
+      <td>0.940 [0.766, 0.979]</td>
+      <td>0.895 [0.811, 0.944]</td>
+      <td>-0.045 [-0.110, 0.101]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.839 [0.683, 0.933]</td>
+      <td>0.866 [0.744, 0.929]</td>
+      <td>0.027 [-0.100, 0.165]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>/e–o/ distance</td>
+      <td>43</td>
+      <td>0.951 [0.914, 0.979]</td>
+      <td>0.932 [0.871, 0.966]</td>
+      <td>-0.019 [-0.065, 0.005]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.944 [0.878, 0.969]</td>
+      <td>0.895 [0.773, 0.955]</td>
+      <td>-0.048 [-0.154, 0.027]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>/e–u/ distance</td>
+      <td>43</td>
+      <td>0.915 [0.866, 0.950]</td>
+      <td>0.676 [0.478, 0.803]</td>
+      <td>-0.239 [-0.411, -0.127]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.930 [0.844, 0.964]</td>
+      <td>0.661 [0.412, 0.820]</td>
+      <td>-0.269 [-0.501, -0.100]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>/i–a/ distance</td>
+      <td>43</td>
+      <td>0.959 [0.900, 0.983]</td>
+      <td>0.743 [0.563, 0.869]</td>
+      <td>-0.216 [-0.375, -0.095]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.933 [0.842, 0.974]</td>
+      <td>0.774 [0.582, 0.901]</td>
+      <td>-0.159 [-0.336, -0.013]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>/i–e/ distance</td>
+      <td>43</td>
+      <td>0.905 [0.805, 0.956]</td>
+      <td>0.857 [0.749, 0.919]</td>
+      <td>-0.048 [-0.173, 0.071]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.888 [0.764, 0.954]</td>
+      <td>0.795 [0.615, 0.894]</td>
+      <td>-0.093 [-0.288, 0.075]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>/i–o/ distance</td>
+      <td>43</td>
+      <td>0.967 [0.918, 0.987]</td>
+      <td>0.861 [0.755, 0.917]</td>
+      <td>-0.106 [-0.214, -0.034]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.932 [0.843, 0.974]</td>
+      <td>0.849 [0.715, 0.922]</td>
+      <td>-0.083 [-0.221, 0.035]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>/i–u/ distance</td>
+      <td>43</td>
+      <td>0.943 [0.891, 0.970]</td>
+      <td>0.698 [0.469, 0.843]</td>
+      <td>-0.244 [-0.481, -0.091]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.918 [0.821, 0.961]</td>
+      <td>0.599 [0.322, 0.795]</td>
+      <td>-0.318 [-0.590, -0.104]</td>
+      <td>Non-normalized higher</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+    </tr>
+    <tr>
+      <td>Geometry</td>
+      <td>/o–u/ distance</td>
+      <td>43</td>
+      <td>0.584 [0.256, 0.783]</td>
+      <td>0.717 [0.516, 0.849]</td>
+      <td>0.133 [-0.102, 0.437]</td>
+      <td>No clear difference</td>
+      <td>&lt;0.001</td>
+      <td>&lt;0.001</td>
+      <td>0.426 [0.111, 0.693]</td>
+      <td>0.687 [0.435, 0.852]</td>
+      <td>0.261 [-0.074, 0.604]</td>
+      <td>No clear difference</td>
+      <td>0.004</td>
+      <td>&lt;0.001</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Interpretation cautions</h2>
+
+<ul>
+<li>
+Correlations are calculated across speakers, not separately
+within each speaker.
+</li>
+
+<li>
+The same speakers and the same H1/H2 divisions are used in the
+two representations whenever all four values are available.
+</li>
+
+<li>
+Geometry in Hz and geometry in Lobanov units have different
+scales, but correlation itself is scale-free.
+</li>
+
+<li>
+A high Spearman value with a lower Pearson value suggests that
+speaker ordering is stable even when numerical spacing changes.
+</li>
+
+<li>
+A high Pearson or Spearman correlation should not be interpreted
+as proof of exact H1–H2 agreement.
+</li>
+</ul>
+
+</body>
+</html>
